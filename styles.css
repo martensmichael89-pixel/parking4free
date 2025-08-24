@@ -753,13 +753,15 @@ select:focus {
 
 .member-header h2 {
     color: #4ade80;
-    font-size: 2.5rem;
+    font-size: 1.8rem;
+    font-weight: bold;
     margin-bottom: 1rem;
 }
 
 .member-header p {
     color: #cccccc;
-    font-size: 1.1rem;
+    font-size: 0.9rem;
+    font-weight: 500;
 }
 
 .member-dashboard {
@@ -783,7 +785,8 @@ select:focus {
 
 .member-card h3 {
     color: #4ade80;
-    font-size: 1.5rem;
+    font-size: 1.2rem;
+    font-weight: bold;
     margin-bottom: 1.5rem;
     display: flex;
     align-items: center;
@@ -794,10 +797,11 @@ select:focus {
     background: #4ade80;
     color: #000000;
     border: none;
-    padding: 0.8rem 1.5rem;
+    padding: 0.5rem 1rem;
     border-radius: 5px;
     cursor: pointer;
-    font-weight: bold;
+    font-size: 0.9rem;
+    font-weight: 500;
     transition: all 0.3s ease;
     margin-top: 1rem;
 }
@@ -814,10 +818,13 @@ select:focus {
     padding: 0.5rem;
     background: #1a1a1a;
     border-radius: 5px;
+    font-size: 0.9rem;
+    font-weight: 500;
 }
 
 .profile-info strong {
     color: #4ade80;
+    font-weight: bold;
 }
 
 /* Favorites */
@@ -830,6 +837,8 @@ select:focus {
     font-style: italic;
     text-align: center;
     padding: 2rem;
+    font-size: 0.9rem;
+    font-weight: 500;
 }
 
 .favorite-item {
@@ -843,11 +852,14 @@ select:focus {
 .favorite-item h4 {
     color: #4ade80;
     margin-bottom: 0.5rem;
+    font-size: 1rem;
+    font-weight: bold;
 }
 
 .favorite-item p {
     color: #cccccc;
     font-size: 0.9rem;
+    font-weight: 500;
 }
 
 /* Statistics */
@@ -867,7 +879,7 @@ select:focus {
 
 .stat-number {
     display: block;
-    font-size: 2rem;
+    font-size: 1.5rem;
     font-weight: bold;
     color: #4ade80;
     margin-bottom: 0.5rem;
@@ -876,6 +888,7 @@ select:focus {
 .stat-label {
     color: #cccccc;
     font-size: 0.9rem;
+    font-weight: 500;
 }
 
 /* Report Form */
@@ -911,6 +924,8 @@ select:focus {
     margin-bottom: 1rem;
     cursor: pointer;
     color: #cccccc;
+    font-size: 0.9rem;
+    font-weight: 500;
 }
 
 .setting-item input[type="checkbox"] {
