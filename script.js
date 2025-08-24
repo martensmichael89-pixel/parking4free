@@ -657,8 +657,6 @@ class FreeParkApp {
         const email = document.getElementById('login-email').value;
         const password = document.getElementById('login-password').value;
 
-        console.log('Login-Versuch mit:', { email, password: '***' });
-
         // Versuche zuerst mit fetch (für moderne Browser)
         fetch('https://parking4free-backend.onrender.com/api/auth/login', {
             method: 'POST',
@@ -668,7 +666,6 @@ class FreeParkApp {
             body: JSON.stringify({ email, password })
         })
         .then(response => {
-            console.log('Fetch Response Status:', response.status);
             if (response.ok) {
                 return response.json();
             } else {
@@ -676,7 +673,6 @@ class FreeParkApp {
             }
         })
         .then(data => {
-            console.log('Login erfolgreich (Fetch):', data);
             this.currentUser = data.user;
             localStorage.setItem('token', data.token);
             this.updateAuthUI();
@@ -684,10 +680,7 @@ class FreeParkApp {
             this.showNotification('Erfolgreich angemeldet!', 'success');
         })
         .catch(error => {
-            console.error('Fetch Error:', error);
-            
             // Fallback: XMLHttpRequest
-            console.log('Versuche XMLHttpRequest als Fallback...');
             this.handleLoginXHR(email, password);
         });
     }
@@ -698,35 +691,27 @@ class FreeParkApp {
         xhr.setRequestHeader('Content-Type', 'application/json');
         
         xhr.onload = () => {
-            console.log('XHR Response Status:', xhr.status);
-            console.log('XHR Response Text:', xhr.responseText);
-            
             if (xhr.status === 200) {
                 try {
                     const data = JSON.parse(xhr.responseText);
-                    console.log('Login erfolgreich (XHR):', data);
                     this.currentUser = data.user;
                     localStorage.setItem('token', data.token);
                     this.updateAuthUI();
                     this.hideModal(document.getElementById('login-modal'));
                     this.showNotification('Erfolgreich angemeldet!', 'success');
                 } catch (error) {
-                    console.error('JSON Parse Error:', error);
                     this.showNotification('Fehler beim Parsen der Antwort', 'error');
                 }
             } else {
-                console.error('Login fehlgeschlagen:', xhr.status, xhr.responseText);
                 this.showNotification('Login fehlgeschlagen: ' + xhr.status, 'error');
             }
         };
         
         xhr.onerror = (error) => {
-            console.error('XHR Network Error:', error);
             this.showNotification('Verbindungsfehler - Backend nicht erreichbar', 'error');
         };
         
         xhr.ontimeout = () => {
-            console.error('XHR Timeout');
             this.showNotification('Zeitüberschreitung', 'error');
         };
         
