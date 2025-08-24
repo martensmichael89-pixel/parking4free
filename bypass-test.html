@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bypass Test</title>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data: 'unsafe-inline' 'unsafe-eval'; connect-src 'self' https:;">
+</head>
+<body>
+    <h1>Bypass Test</h1>
+    <button onclick="testFetch()">Test Fetch</button>
+    <button onclick="testXHR()">Test XHR</button>
+    <button onclick="testJSONP()">Test JSONP</button>
+    <div id="result"></div>
+
+    <script>
+        function testFetch() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Testing Fetch...';
+            
+            fetch('https://parking4free-backend.onrender.com/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email: 'admin@parking4free.de',
+                    password: 'admin123'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                resultDiv.innerHTML = 'FETCH SUCCESS: ' + JSON.stringify(data, null, 2);
+            })
+            .catch(error => {
+                resultDiv.innerHTML = 'FETCH ERROR: ' + error.message;
+            });
+        }
+
+        function testXHR() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Testing XHR...';
+            
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', 'https://parking4free-backend.onrender.com/api/auth/login', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    const data = JSON.parse(xhr.responseText);
+                    resultDiv.innerHTML = 'XHR SUCCESS: ' + JSON.stringify(data, null, 2);
+                } else {
+                    resultDiv.innerHTML = 'XHR ERROR: ' + xhr.status + ' - ' + xhr.responseText;
+                }
+            };
+            
+            xhr.onerror = function() {
+                resultDiv.innerHTML = 'XHR NETWORK ERROR: ' + xhr.statusText;
+            };
+            
+            xhr.send(JSON.stringify({
+                email: 'admin@parking4free.de',
+                password: 'admin123'
+            }));
+        }
+
+        function testJSONP() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Testing JSONP...';
+            
+            // JSONP funktioniert nicht für POST, aber wir testen es trotzdem
+            const script = document.createElement('script');
+            script.src = 'https://parking4free-backend.onrender.com/api/health?callback=handleResponse';
+            document.head.appendChild(script);
+            
+            window.handleResponse = function(data) {
+                resultDiv.innerHTML = 'JSONP SUCCESS: ' + JSON.stringify(data, null, 2);
+                document.head.removeChild(script);
+            };
+            
+            setTimeout(() => {
+                if (document.head.contains(script)) {
+                    resultDiv.innerHTML = 'JSONP ERROR: Timeout';
+                    document.head.removeChild(script);
+                }
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
