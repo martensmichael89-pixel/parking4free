@@ -33,6 +33,34 @@
                 return null;
             }
         };
+
+        // XMLHttpRequest Test
+        window.testXHR = function() {
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', 'https://parking4free-backend.onrender.com/api/auth/login', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    const data = JSON.parse(xhr.responseText);
+                    console.log('XHR SUCCESS:', data);
+                    alert('XHR Login erfolgreich! Benutzer: ' + data.user.name);
+                } else {
+                    console.error('XHR ERROR:', xhr.status, xhr.responseText);
+                    alert('XHR Fehler: ' + xhr.status + ' - ' + xhr.responseText);
+                }
+            };
+            
+            xhr.onerror = function() {
+                console.error('XHR NETWORK ERROR:', xhr.statusText);
+                alert('XHR Netzwerk-Fehler: ' + xhr.statusText);
+            };
+            
+            xhr.send(JSON.stringify({
+                email: 'admin@parking4free.de',
+                password: 'admin123'
+            }));
+        };
     </script>
 </head>
 <body>
