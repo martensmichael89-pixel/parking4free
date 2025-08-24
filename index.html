@@ -22,6 +22,7 @@
                     <li><a href="#map" class="nav-link" data-section="map">Map</a></li>
                     <li><a href="#list" class="nav-link" data-section="list">List</a></li>
                     <li><a href="#search" class="nav-link" data-section="search">Suche</a></li>
+                    <li><a href="#member" class="nav-link member-only" data-section="member" style="display: none;">Mitgliederbereich</a></li>
                 </ul>
             </nav>
             <div class="user-menu">
@@ -139,6 +140,98 @@
                     </div>
                     <div class="search-results" id="search-results">
                         <!-- Suchergebnisse werden hier angezeigt -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Member Section -->
+            <section id="member" class="section">
+                <div class="member-container">
+                    <div class="member-header">
+                        <h2>🔐 Mitgliederbereich</h2>
+                        <p>Willkommen im exklusiven Bereich für registrierte Nutzer!</p>
+                    </div>
+                    
+                    <div class="member-dashboard">
+                        <div class="member-card">
+                            <h3>👤 Mein Profil</h3>
+                            <div class="profile-info">
+                                <p><strong>Name:</strong> <span id="member-name">-</span></p>
+                                <p><strong>Email:</strong> <span id="member-email">-</span></p>
+                                <p><strong>Mitglied seit:</strong> <span id="member-since">-</span></p>
+                                <p><strong>Rolle:</strong> <span id="member-role">-</span></p>
+                            </div>
+                            <button class="member-btn" onclick="editProfile()">Profil bearbeiten</button>
+                        </div>
+
+                        <div class="member-card">
+                            <h3>⭐ Favoriten</h3>
+                            <div class="favorites-list" id="favorites-list">
+                                <p class="no-favorites">Noch keine Favoriten gespeichert</p>
+                            </div>
+                            <button class="member-btn" onclick="addToFavorites()">Favorit hinzufügen</button>
+                        </div>
+
+                        <div class="member-card">
+                            <h3>📊 Meine Statistiken</h3>
+                            <div class="stats-grid">
+                                <div class="stat-item">
+                                    <span class="stat-number" id="stats-searches">0</span>
+                                    <span class="stat-label">Suchen</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-number" id="stats-favorites">0</span>
+                                    <span class="stat-label">Favoriten</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-number" id="stats-reports">0</span>
+                                    <span class="stat-label">Meldungen</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="member-card">
+                            <h3>🚨 Parkplatz melden</h3>
+                            <form id="report-form" class="report-form">
+                                <div class="form-group">
+                                    <label for="report-address">Adresse</label>
+                                    <input type="text" id="report-address" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="report-type">Typ</label>
+                                    <select id="report-type" required>
+                                        <option value="">Bitte wählen</option>
+                                        <option value="free">Kostenlos</option>
+                                        <option value="paid">Kostenpflichtig</option>
+                                        <option value="time-limited">Zeitlich begrenzt</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="report-description">Beschreibung</label>
+                                    <textarea id="report-description" rows="3" placeholder="Details zum Parkplatz..."></textarea>
+                                </div>
+                                <button type="submit" class="member-btn">Parkplatz melden</button>
+                            </form>
+                        </div>
+
+                        <div class="member-card">
+                            <h3>⚙️ Einstellungen</h3>
+                            <div class="settings-group">
+                                <label class="setting-item">
+                                    <input type="checkbox" id="email-notifications">
+                                    <span>Email-Benachrichtigungen</span>
+                                </label>
+                                <label class="setting-item">
+                                    <input type="checkbox" id="auto-save-favorites">
+                                    <span>Favoriten automatisch speichern</span>
+                                </label>
+                                <label class="setting-item">
+                                    <input type="checkbox" id="dark-mode">
+                                    <span>Dark Mode</span>
+                                </label>
+                            </div>
+                            <button class="member-btn" onclick="saveSettings()">Einstellungen speichern</button>
+                        </div>
                     </div>
                 </div>
             </section>

@@ -21,6 +21,7 @@ class FreeParkApp {
         this.setupHomeMap();
         this.setupEventListeners();
         this.setupAuth();
+        this.setupMemberEventListeners();
         this.loadParkingList();
         this.checkAuthStatus();
     }
@@ -795,14 +796,30 @@ class FreeParkApp {
         const userActions = document.getElementById('user-actions');
         const userProfile = document.getElementById('user-profile');
         const username = document.getElementById('username');
+        const memberNav = document.querySelector('.member-only');
 
         if (this.currentUser) {
             userActions.style.display = 'none';
             userProfile.style.display = 'flex';
             username.textContent = this.currentUser.name;
+            
+            // Mitgliederbereich-Navigation anzeigen
+            if (memberNav) {
+                memberNav.style.display = 'block';
+                memberNav.classList.add('show');
+            }
+            
+            // Mitgliederbereich-Daten laden
+            this.loadMemberData();
         } else {
             userActions.style.display = 'flex';
             userProfile.style.display = 'none';
+            
+            // Mitgliederbereich-Navigation verstecken
+            if (memberNav) {
+                memberNav.style.display = 'none';
+                memberNav.classList.remove('show');
+            }
         }
     }
 
@@ -873,6 +890,108 @@ class FreeParkApp {
             }
         ];
     }
+
+    // Mitgliederbereich-Funktionen
+    loadMemberData() {
+        if (!this.currentUser) return;
+        
+        // Profildaten anzeigen
+        document.getElementById('member-name').textContent = this.currentUser.name;
+        document.getElementById('member-email').textContent = this.currentUser.email;
+        document.getElementById('member-since').textContent = new Date(this.currentUser.created_at).toLocaleDateString('de-DE');
+        document.getElementById('member-role').textContent = this.currentUser.role === 'admin' ? 'Administrator' : 'Benutzer';
+        
+        // Statistiken laden
+        this.loadUserStats();
+        
+        // Favoriten laden
+        this.loadFavorites();
+        
+        // Einstellungen laden
+        this.loadSettings();
+    }
+
+    loadUserStats() {
+        // Statistiken aus localStorage laden oder Standardwerte verwenden
+        const stats = JSON.parse(localStorage.getItem('userStats') || '{}');
+        
+        document.getElementById('stats-searches').textContent = stats.searches || 0;
+        document.getElementById('stats-favorites').textContent = stats.favorites || 0;
+        document.getElementById('stats-reports').textContent = stats.reports || 0;
+    }
+
+    loadFavorites() {
+        const favorites = JSON.parse(localStorage.getItem('userFavorites') || '[]');
+        const favoritesList = document.getElementById('favorites-list');
+        
+        if (favorites.length === 0) {
+            favoritesList.innerHTML = '<p class="no-favorites">Noch keine Favoriten gespeichert</p>';
+        } else {
+            favoritesList.innerHTML = favorites.map(fav => `
+                <div class="favorite-item">
+                    <h4>${fav.name}</h4>
+                    <p>${fav.address}</p>
+                    <p><strong>Typ:</strong> ${fav.type}</p>
+                </div>
+            `).join('');
+        }
+    }
+
+    loadSettings() {
+        const settings = JSON.parse(localStorage.getItem('userSettings') || '{}');
+        
+        document.getElementById('email-notifications').checked = settings.emailNotifications || false;
+        document.getElementById('auto-save-favorites').checked = settings.autoSaveFavorites || false;
+        document.getElementById('dark-mode').checked = settings.darkMode || false;
+    }
+
+    // Event Listeners für Mitgliederbereich
+    setupMemberEventListeners() {
+        // Parkplatz melden Form
+        const reportForm = document.getElementById('report-form');
+        if (reportForm) {
+            reportForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.submitParkingReport();
+            });
+        }
+    }
+
+    submitParkingReport() {
+        const address = document.getElementById('report-address').value;
+        const type = document.getElementById('report-type').value;
+        const description = document.getElementById('report-description').value;
+        
+        if (!address || !type) {
+            this.showNotification('Bitte füllen Sie alle Pflichtfelder aus', 'error');
+            return;
+        }
+        
+        // Report an Backend senden (hier würde die API-Integration erfolgen)
+        const report = {
+            address,
+            type,
+            description,
+            userId: this.currentUser.id,
+            timestamp: new Date().toISOString()
+        };
+        
+        // Lokal speichern (für Demo-Zwecke)
+        const reports = JSON.parse(localStorage.getItem('userReports') || '[]');
+        reports.push(report);
+        localStorage.setItem('userReports', JSON.stringify(reports));
+        
+        // Statistiken aktualisieren
+        const stats = JSON.parse(localStorage.getItem('userStats') || '{}');
+        stats.reports = (stats.reports || 0) + 1;
+        localStorage.setItem('userStats', JSON.stringify(stats));
+        
+        this.loadUserStats();
+        this.showNotification('Parkplatz erfolgreich gemeldet!', 'success');
+        
+        // Form zurücksetzen
+        document.getElementById('report-form').reset();
+    }
 }
 
 // CSS für Benachrichtigungen hinzufügen
@@ -894,6 +1013,26 @@ document.head.appendChild(notificationStyles);
 document.addEventListener('DOMContentLoaded', () => {
     window.app = new FreeParkApp();
 });
+
+// Globale Funktionen für Mitgliederbereich
+function editProfile() {
+    alert('Profil-Bearbeitung wird in einer zukünftigen Version verfügbar sein.');
+}
+
+function addToFavorites() {
+    alert('Favoriten-Funktion wird in einer zukünftigen Version verfügbar sein.');
+}
+
+function saveSettings() {
+    const settings = {
+        emailNotifications: document.getElementById('email-notifications').checked,
+        autoSaveFavorites: document.getElementById('auto-save-favorites').checked,
+        darkMode: document.getElementById('dark-mode').checked
+    };
+    
+    localStorage.setItem('userSettings', JSON.stringify(settings));
+    app.showNotification('Einstellungen gespeichert!', 'success');
+}
 
 // Service Worker für PWA-Funktionalität (optional)
 // if ('serviceWorker' in navigator) {
