@@ -14,7 +14,18 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Security Middleware
-app.use(helmet());
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            connectSrc: ["'self'", "https://parking4free-backend.onrender.com", "https://martensmichael89-pixel.github.io"],
+            scriptSrc: ["'self'", "'unsafe-inline'"],
+            styleSrc: ["'self'", "'unsafe-inline'", "https:"],
+            imgSrc: ["'self'", "data:", "https:"],
+            fontSrc: ["'self'", "https:", "data:"]
+        }
+    }
+}));
 app.use(cors({
     origin: [
         'http://localhost:8003', 
