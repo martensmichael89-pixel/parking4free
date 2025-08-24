@@ -13,13 +13,13 @@ const parkingRoutes = require('./routes/parking');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Security Middleware - CSP komplett deaktiviert
-app.use(helmet({
-    contentSecurityPolicy: false,
-    crossOriginEmbedderPolicy: false,
-    crossOriginOpenerPolicy: false,
-    crossOriginResourcePolicy: false
-}));
+// Security Middleware - Helmet komplett deaktiviert
+// app.use(helmet({
+//     contentSecurityPolicy: false,
+//     crossOriginEmbedderPolicy: false,
+//     crossOriginOpenerPolicy: false,
+//     crossOriginResourcePolicy: false
+// }));
 // CORS-Konfiguration
 const corsOptions = {
     origin: function (origin, callback) {
