@@ -16,5 +16,8 @@ const config = {
 const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 const currentConfig = config[isDevelopment ? 'development' : 'production'];
 
+// Debug: Log der aktuellen Konfiguration
+console.log('Parking4Free Config:', currentConfig);
+
 // Globale Konfiguration exportieren
 window.Parking4FreeConfig = currentConfig;
