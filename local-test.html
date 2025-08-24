@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Local Test - Parking4Free</title>
+    <style>
+        body { 
+            font-family: Arial; 
+            padding: 20px; 
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        input, button { 
+            margin: 10px 0; 
+            padding: 12px; 
+            width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .result { 
+            margin: 20px 0; 
+            padding: 15px; 
+            border-radius: 5px; 
+            font-weight: bold;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Local Test - Parking4Free</h1>
+        <p>Diese Seite testet die Verbindung zum lokalen Backend (Port 3000)</p>
+        
+        <input type="email" id="email" value="admin@parking4free.de" placeholder="Email">
+        <input type="password" id="password" value="admin123" placeholder="Password">
+        <button onclick="testLocal()">Test Local Backend</button>
+        <button onclick="testRemote()" style="background: #28a745;">Test Remote Backend</button>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        function showResult(message, type) {
+            const result = document.getElementById('result');
+            result.innerHTML = message;
+            result.className = `result ${type}`;
+            console.log(`${type.toUpperCase()}:`, message);
+        }
+
+        function testLocal() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            showResult('Testing local backend...', 'info');
+            
+            fetch('http://localhost:3000/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email, password })
+            })
+            .then(response => {
+                console.log('Local Response Status:', response.status);
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            })
+            .then(data => {
+                showResult(`✅ Local Login erfolgreich! Willkommen ${data.user.name} (${data.user.role})`, 'success');
+                localStorage.setItem('token', data.token);
+                console.log('Token gespeichert:', data.token);
+            })
+            .catch(error => {
+                console.error('Local Error:', error);
+                showResult(`❌ Local Login fehlgeschlagen: ${error.message}`, 'error');
+            });
+        }
+
+        function testRemote() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            showResult('Testing remote backend...', 'info');
+            
+            fetch('https://parking4free-backend.onrender.com/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email, password })
+            })
+            .then(response => {
+                console.log('Remote Response Status:', response.status);
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            })
+            .then(data => {
+                showResult(`✅ Remote Login erfolgreich! Willkommen ${data.user.name} (${data.user.role})`, 'success');
+                localStorage.setItem('token', data.token);
+                console.log('Token gespeichert:', data.token);
+            })
+            .catch(error => {
+                console.error('Remote Error:', error);
+                showResult(`❌ Remote Login fehlgeschlagen: ${error.message}`, 'error');
+            });
+        }
+    </script>
+</body>
+</html>

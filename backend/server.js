@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const helmet = require('helmet');
+// const helmet = require('helmet'); // KOMPLETT DEAKTIVIERT
 const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
