@@ -653,9 +653,11 @@ class FreeParkApp {
         if (form) form.reset();
     }
 
-    async handleLogin() {
+    handleLogin() {
         const email = document.getElementById('login-email').value;
         const password = document.getElementById('login-password').value;
+
+        console.log('Login-Versuch mit:', { email, password: '***' });
 
         // Verwende XMLHttpRequest statt fetch um CSP-Probleme zu umgehen
         const xhr = new XMLHttpRequest();
@@ -663,26 +665,39 @@ class FreeParkApp {
         xhr.setRequestHeader('Content-Type', 'application/json');
         
         xhr.onload = () => {
+            console.log('XHR Response Status:', xhr.status);
+            console.log('XHR Response Text:', xhr.responseText);
+            
             if (xhr.status === 200) {
                 try {
                     const data = JSON.parse(xhr.responseText);
+                    console.log('Login erfolgreich:', data);
                     this.currentUser = data.user;
                     localStorage.setItem('token', data.token);
                     this.updateAuthUI();
                     this.hideModal(document.getElementById('login-modal'));
                     this.showNotification('Erfolgreich angemeldet!', 'success');
                 } catch (error) {
+                    console.error('JSON Parse Error:', error);
                     this.showNotification('Fehler beim Parsen der Antwort', 'error');
                 }
             } else {
+                console.error('Login fehlgeschlagen:', xhr.status, xhr.responseText);
                 this.showNotification('Login fehlgeschlagen: ' + xhr.status, 'error');
             }
         };
         
-        xhr.onerror = () => {
+        xhr.onerror = (error) => {
+            console.error('XHR Network Error:', error);
             this.showNotification('Verbindungsfehler', 'error');
         };
         
+        xhr.ontimeout = () => {
+            console.error('XHR Timeout');
+            this.showNotification('Zeitüberschreitung', 'error');
+        };
+        
+        xhr.timeout = 10000; // 10 Sekunden Timeout
         xhr.send(JSON.stringify({ email, password }));
     }
 
