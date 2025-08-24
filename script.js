@@ -657,29 +657,33 @@ class FreeParkApp {
         const email = document.getElementById('login-email').value;
         const password = document.getElementById('login-password').value;
 
-        try {
-            const response = await fetch(`${this.apiBaseUrl}/auth/login`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ email, password })
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                this.currentUser = data.user;
-                localStorage.setItem('token', data.token);
-                this.updateAuthUI();
-                this.hideModal(document.getElementById('login-modal'));
-                this.showNotification('Erfolgreich angemeldet!', 'success');
+        // Verwende XMLHttpRequest statt fetch um CSP-Probleme zu umgehen
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', 'https://parking4free-backend.onrender.com/api/auth/login', true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        
+        xhr.onload = () => {
+            if (xhr.status === 200) {
+                try {
+                    const data = JSON.parse(xhr.responseText);
+                    this.currentUser = data.user;
+                    localStorage.setItem('token', data.token);
+                    this.updateAuthUI();
+                    this.hideModal(document.getElementById('login-modal'));
+                    this.showNotification('Erfolgreich angemeldet!', 'success');
+                } catch (error) {
+                    this.showNotification('Fehler beim Parsen der Antwort', 'error');
+                }
             } else {
-                this.showNotification(data.message || 'Login fehlgeschlagen', 'error');
+                this.showNotification('Login fehlgeschlagen: ' + xhr.status, 'error');
             }
-        } catch (error) {
+        };
+        
+        xhr.onerror = () => {
             this.showNotification('Verbindungsfehler', 'error');
-        }
+        };
+        
+        xhr.send(JSON.stringify({ email, password }));
     }
 
     async handleRegister() {
@@ -693,49 +697,65 @@ class FreeParkApp {
             return;
         }
 
-        try {
-            const response = await fetch(`${this.apiBaseUrl}/auth/register`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ name, email, password })
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                this.hideModal(document.getElementById('register-modal'));
-                this.showNotification('Registrierung erfolgreich! Bitte melden Sie sich an.', 'success');
+        // Verwende XMLHttpRequest statt fetch um CSP-Probleme zu umgehen
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', 'https://parking4free-backend.onrender.com/api/auth/register', true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        
+        xhr.onload = () => {
+            if (xhr.status === 201 || xhr.status === 200) {
+                try {
+                    const data = JSON.parse(xhr.responseText);
+                    this.hideModal(document.getElementById('register-modal'));
+                    this.showNotification('Registrierung erfolgreich! Bitte melden Sie sich an.', 'success');
+                } catch (error) {
+                    this.showNotification('Registrierung erfolgreich! Bitte melden Sie sich an.', 'success');
+                }
             } else {
-                this.showNotification(data.message || 'Registrierung fehlgeschlagen', 'error');
+                try {
+                    const data = JSON.parse(xhr.responseText);
+                    this.showNotification(data.message || 'Registrierung fehlgeschlagen', 'error');
+                } catch (error) {
+                    this.showNotification('Registrierung fehlgeschlagen: ' + xhr.status, 'error');
+                }
             }
-        } catch (error) {
+        };
+        
+        xhr.onerror = () => {
             this.showNotification('Verbindungsfehler', 'error');
-        }
+        };
+        
+        xhr.send(JSON.stringify({ name, email, password }));
     }
 
     async checkAuthStatus() {
         const token = localStorage.getItem('token');
         if (!token) return;
 
-        try {
-            const response = await fetch(`${this.apiBaseUrl}/auth/me`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
+        // Verwende XMLHttpRequest statt fetch um CSP-Probleme zu umgehen
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', 'https://parking4free-backend.onrender.com/api/auth/me', true);
+        xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+        
+        xhr.onload = () => {
+            if (xhr.status === 200) {
+                try {
+                    const data = JSON.parse(xhr.responseText);
+                    this.currentUser = data.user;
+                    this.updateAuthUI();
+                } catch (error) {
+                    localStorage.removeItem('token');
                 }
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                this.currentUser = data.user;
-                this.updateAuthUI();
             } else {
                 localStorage.removeItem('token');
             }
-        } catch (error) {
+        };
+        
+        xhr.onerror = () => {
             localStorage.removeItem('token');
-        }
+        };
+        
+        xhr.send();
     }
 
     updateAuthUI() {
