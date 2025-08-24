@@ -16,7 +16,13 @@ const PORT = process.env.PORT || 3001;
 // Security Middleware
 app.use(helmet());
 app.use(cors({
-    origin: ['http://localhost:8003', 'http://localhost:3000', 'https://your-domain.netlify.app'],
+    origin: [
+        'http://localhost:8003', 
+        'http://localhost:3000', 
+        'https://your-domain.netlify.app',
+        'https://martensmichael89-pixel.github.io',
+        'https://incredible-blini-fce158.netlify.app'
+    ],
     credentials: true
 }));
 
