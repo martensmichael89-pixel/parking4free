@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Debug - Parking4Free</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .debug { background: #f5f5f5; padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .error { background: #ffebee; color: #c62828; }
+        .success { background: #e8f5e8; color: #2e7d32; }
+        button { padding: 10px 20px; margin: 5px; }
+        input { padding: 8px; margin: 5px; width: 200px; }
+    </style>
+</head>
+<body>
+    <h1>Login Debug - Parking4Free</h1>
+    
+    <div class="debug">
+        <h3>Konfiguration:</h3>
+        <div id="config-info">Lade...</div>
+    </div>
+
+    <div class="debug">
+        <h3>Login Test:</h3>
+        <input type="email" id="email" placeholder="Email" value="admin@parking4free.de">
+        <input type="password" id="password" placeholder="Passwort" value="admin123">
+        <button onclick="testLogin()">Login Testen</button>
+        <div id="login-result"></div>
+    </div>
+
+    <div class="debug">
+        <h3>Backend Health Check:</h3>
+        <button onclick="testHealth()">Health Check</button>
+        <div id="health-result"></div>
+    </div>
+
+    <script>
+        // Konfiguration laden
+        const config = {
+            development: {
+                apiBaseUrl: 'http://localhost:3000/api'
+            },
+            production: {
+                apiBaseUrl: 'https://parking4free-backend.onrender.com/api'
+            }
+        };
+
+        const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        const currentConfig = config[isDevelopment ? 'development' : 'production'];
+
+        document.getElementById('config-info').innerHTML = `
+            <strong>Umgebung:</strong> ${isDevelopment ? 'Development' : 'Production'}<br>
+            <strong>API URL:</strong> ${currentConfig.apiBaseUrl}<br>
+            <strong>Hostname:</strong> ${window.location.hostname}
+        `;
+
+        async function testHealth() {
+            const resultDiv = document.getElementById('health-result');
+            resultDiv.innerHTML = 'Teste...';
+            
+            try {
+                const response = await fetch(`${currentConfig.apiBaseUrl}/health`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `<div class="success">✅ Health Check erfolgreich: ${JSON.stringify(data)}</div>`;
+                } else {
+                    resultDiv.innerHTML = `<div class="error">❌ Health Check fehlgeschlagen: ${response.status}</div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ Verbindungsfehler: ${error.message}</div>`;
+            }
+        }
+
+        async function testLogin() {
+            const resultDiv = document.getElementById('login-result');
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            resultDiv.innerHTML = 'Teste Login...';
+            
+            try {
+                const response = await fetch(`${currentConfig.apiBaseUrl}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    resultDiv.innerHTML = `<div class="success">✅ Login erfolgreich! Token: ${data.token.substring(0, 50)}...</div>`;
+                } else {
+                    resultDiv.innerHTML = `<div class="error">❌ Login fehlgeschlagen: ${data.message}</div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ Verbindungsfehler: ${error.message}</div>`;
+            }
+        }
+
+        // Automatisch Health Check beim Laden
+        window.onload = testHealth;
+    </script>
+</body>
+</html>
