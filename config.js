@@ -1,7 +1,7 @@
 // Konfiguration für verschiedene Umgebungen
 const config = {
     development: {
-        apiBaseUrl: 'http://localhost:3001/api',
+        apiBaseUrl: 'http://localhost:3000/api',
         mapTileUrl: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
         mapAttribution: '© OpenStreetMap contributors'
     },
