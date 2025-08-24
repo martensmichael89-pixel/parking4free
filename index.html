@@ -187,30 +187,136 @@
                                     <span class="stat-number" id="stats-reports">0</span>
                                     <span class="stat-label">Meldungen</span>
                                 </div>
+                                <div class="stat-item points-item">
+                                    <span class="stat-number" id="stats-points">0</span>
+                                    <span class="stat-label">Punkte</span>
+                                </div>
+                            </div>
+                            <div class="points-info">
+                                <p><strong>🏆 Rangliste:</strong> <span id="user-rank">-</span></p>
+                                <p><strong>💰 Gesamtpunkte:</strong> <span id="total-points">0</span></p>
+                            </div>
+                        </div>
+
+                        <div class="member-card">
+                            <h3>⚔️ Duell-System</h3>
+                            <div class="duel-section">
+                                <div class="duel-challenge">
+                                    <h4>🎯 Herausforderung senden</h4>
+                                    <div class="form-group">
+                                        <label for="challenge-user">Benutzer auswählen</label>
+                                        <select id="challenge-user">
+                                            <option value="">Benutzer wählen...</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="challenge-duration">Dauer (Tage)</label>
+                                        <select id="challenge-duration">
+                                            <option value="1">1 Tag</option>
+                                            <option value="3">3 Tage</option>
+                                            <option value="7" selected>1 Woche</option>
+                                            <option value="30">1 Monat</option>
+                                        </select>
+                                    </div>
+                                    <button class="member-btn" onclick="sendChallenge()">
+                                        <span class="btn-icon">⚔️</span>
+                                        Herausforderung senden
+                                    </button>
+                                </div>
+                                
+                                <div class="duel-requests">
+                                    <h4>📨 Herausforderungen</h4>
+                                    <div id="duel-requests-list">
+                                        <p class="no-duels">Keine ausstehenden Herausforderungen</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="duel-active">
+                                    <h4>🏆 Aktive Duelle</h4>
+                                    <div id="active-duels-list">
+                                        <p class="no-duels">Keine aktiven Duelle</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
                         <div class="member-card">
                             <h3>🚨 Parkplatz melden</h3>
+                            <div class="report-info">
+                                <p><strong>💰 Belohnung:</strong> 10 Punkte pro Meldung</p>
+                                <p><strong>📸 Pflicht:</strong> Foto mit Parkplatz und Schild erforderlich</p>
+                            </div>
                             <form id="report-form" class="report-form">
                                 <div class="form-group">
-                                    <label for="report-address">Adresse</label>
-                                    <input type="text" id="report-address" required>
+                                    <label for="report-address">📍 Adresse</label>
+                                    <input type="text" id="report-address" required placeholder="Straße, Hausnummer, PLZ, Stadt">
                                 </div>
+                                
                                 <div class="form-group">
-                                    <label for="report-type">Typ</label>
+                                    <label for="report-location">📍 Standort markieren</label>
+                                    <div class="location-selector">
+                                        <button type="button" id="select-location-btn" class="location-btn">
+                                            <span class="location-icon">📍</span> Auf Karte markieren
+                                        </button>
+                                        <span id="selected-coordinates" class="coordinates-display">Noch nicht markiert</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="report-type">🅿️ Parkplatz-Typ</label>
                                     <select id="report-type" required>
                                         <option value="">Bitte wählen</option>
-                                        <option value="free">Kostenlos</option>
-                                        <option value="paid">Kostenpflichtig</option>
+                                        <option value="permanent-free">Dauerhaft kostenlos</option>
                                         <option value="time-limited">Zeitlich begrenzt</option>
+                                        <option value="parking-disc">Parkscheibe erforderlich</option>
+                                        <option value="restricted">Eingeschränktes Halteverbot (aufgehoben)</option>
+                                        <option value="absolute">Absolutes Halteverbot (aufgehoben)</option>
                                     </select>
                                 </div>
-                                <div class="form-group">
-                                    <label for="report-description">Beschreibung</label>
-                                    <textarea id="report-description" rows="3" placeholder="Details zum Parkplatz..."></textarea>
+                                
+                                <div class="form-group" id="time-restrictions-group" style="display: none;">
+                                    <label for="report-time-restrictions">⏰ Zeitliche Einschränkungen</label>
+                                    <div class="time-restrictions">
+                                        <div class="time-row">
+                                            <input type="time" id="time-from" placeholder="Von">
+                                            <span>bis</span>
+                                            <input type="time" id="time-to" placeholder="Bis">
+                                        </div>
+                                        <div class="days-row">
+                                            <label><input type="checkbox" value="mo"> Mo</label>
+                                            <label><input type="checkbox" value="di"> Di</label>
+                                            <label><input type="checkbox" value="mi"> Mi</label>
+                                            <label><input type="checkbox" value="do"> Do</label>
+                                            <label><input type="checkbox" value="fr"> Fr</label>
+                                            <label><input type="checkbox" value="sa"> Sa</label>
+                                            <label><input type="checkbox" value="so"> So</label>
+                                        </div>
+                                    </div>
                                 </div>
-                                <button type="submit" class="member-btn">Parkplatz melden</button>
+                                
+                                <div class="form-group">
+                                    <label for="report-description">📝 Beschreibung</label>
+                                    <textarea id="report-description" rows="3" placeholder="Details zum Parkplatz, Besonderheiten, Hinweise..."></textarea>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="report-photo">📸 Foto-Upload (Pflicht)</label>
+                                    <div class="photo-upload">
+                                        <input type="file" id="report-photo" accept="image/*" capture="environment" required>
+                                        <div class="photo-preview" id="photo-preview">
+                                            <div class="upload-placeholder">
+                                                <span class="upload-icon">📸</span>
+                                                <p>Foto aufnehmen oder auswählen</p>
+                                                <p class="upload-hint">Parkplatz und Schild müssen sichtbar sein</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <button type="submit" class="member-btn">
+                                    <span class="btn-icon">🚨</span>
+                                    Parkplatz melden (+10 Punkte)
+                                </button>
                             </form>
                         </div>
 

@@ -918,6 +918,21 @@ class FreeParkApp {
         document.getElementById('stats-searches').textContent = stats.searches || 0;
         document.getElementById('stats-favorites').textContent = stats.favorites || 0;
         document.getElementById('stats-reports').textContent = stats.reports || 0;
+        document.getElementById('stats-points').textContent = stats.points || 0;
+        document.getElementById('total-points').textContent = stats.points || 0;
+        
+        // Rangliste berechnen (Demo)
+        const rank = this.calculateRank(stats.points || 0);
+        document.getElementById('user-rank').textContent = rank;
+    }
+
+    calculateRank(points) {
+        if (points === 0) return 'Unranked';
+        if (points < 50) return 'Bronze';
+        if (points < 100) return 'Silber';
+        if (points < 200) return 'Gold';
+        if (points < 500) return 'Platin';
+        return 'Diamond';
     }
 
     loadFavorites() {
@@ -955,16 +970,104 @@ class FreeParkApp {
                 this.submitParkingReport();
             });
         }
+        
+        // Parkplatz-Typ Änderung
+        const reportType = document.getElementById('report-type');
+        if (reportType) {
+            reportType.addEventListener('change', (e) => {
+                const timeRestrictionsGroup = document.getElementById('time-restrictions-group');
+                if (e.target.value === 'time-limited' || e.target.value === 'parking-disc') {
+                    timeRestrictionsGroup.style.display = 'block';
+                } else {
+                    timeRestrictionsGroup.style.display = 'none';
+                }
+            });
+        }
+        
+        // Foto-Upload
+        const photoInput = document.getElementById('report-photo');
+        if (photoInput) {
+            photoInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        document.getElementById('photo-preview').innerHTML = `
+                            <img src="${e.target.result}" alt="Parkplatz Foto">
+                        `;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+        
+        // Standort markieren Button
+        const selectLocationBtn = document.getElementById('select-location-btn');
+        if (selectLocationBtn) {
+            selectLocationBtn.addEventListener('click', () => {
+                this.selectLocationOnMap();
+            });
+        }
+    }
+
+    selectLocationOnMap() {
+        // Geofencing/Standort-Auswahl
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    document.getElementById('selected-coordinates').textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+                    this.showNotification('Standort erfolgreich markiert!', 'success');
+                },
+                (error) => {
+                    // Fallback: Demo-Koordinaten
+                    const demoLat = 52.5200 + (Math.random() - 0.5) * 0.01;
+                    const demoLng = 13.4050 + (Math.random() - 0.5) * 0.01;
+                    document.getElementById('selected-coordinates').textContent = `${demoLat.toFixed(6)}, ${demoLng.toFixed(6)}`;
+                    this.showNotification('Demo-Standort markiert (GPS nicht verfügbar)', 'info');
+                }
+            );
+        } else {
+            // Fallback für Browser ohne Geolocation
+            const demoLat = 52.5200 + (Math.random() - 0.5) * 0.01;
+            const demoLng = 13.4050 + (Math.random() - 0.5) * 0.01;
+            document.getElementById('selected-coordinates').textContent = `${demoLat.toFixed(6)}, ${demoLng.toFixed(6)}`;
+            this.showNotification('Demo-Standort markiert', 'info');
+        }
     }
 
     submitParkingReport() {
         const address = document.getElementById('report-address').value;
         const type = document.getElementById('report-type').value;
         const description = document.getElementById('report-description').value;
+        const photoFile = document.getElementById('report-photo').files[0];
+        const coordinates = document.getElementById('selected-coordinates').textContent;
         
-        if (!address || !type) {
-            this.showNotification('Bitte füllen Sie alle Pflichtfelder aus', 'error');
+        if (!address || !type || !photoFile) {
+            this.showNotification('Bitte füllen Sie alle Pflichtfelder aus (inkl. Foto)', 'error');
             return;
+        }
+        
+        if (coordinates === 'Noch nicht markiert') {
+            this.showNotification('Bitte markieren Sie den Standort auf der Karte', 'error');
+            return;
+        }
+        
+        // Zeitliche Einschränkungen sammeln
+        let timeRestrictions = null;
+        if (type === 'time-limited' || type === 'parking-disc') {
+            const timeFrom = document.getElementById('time-from').value;
+            const timeTo = document.getElementById('time-to').value;
+            const selectedDays = Array.from(document.querySelectorAll('.days-row input:checked')).map(cb => cb.value);
+            
+            if (timeFrom && timeTo && selectedDays.length > 0) {
+                timeRestrictions = {
+                    from: timeFrom,
+                    to: timeTo,
+                    days: selectedDays
+                };
+            }
         }
         
         // Report an Backend senden (hier würde die API-Integration erfolgen)
@@ -972,8 +1075,12 @@ class FreeParkApp {
             address,
             type,
             description,
+            coordinates,
+            timeRestrictions,
+            photoFile: photoFile.name, // In echtem System würde das Foto hochgeladen
             userId: this.currentUser.id,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            status: 'pending' // Wartet auf Überprüfung
         };
         
         // Lokal speichern (für Demo-Zwecke)
@@ -981,16 +1088,26 @@ class FreeParkApp {
         reports.push(report);
         localStorage.setItem('userReports', JSON.stringify(reports));
         
-        // Statistiken aktualisieren
+        // Statistiken und Punkte aktualisieren
         const stats = JSON.parse(localStorage.getItem('userStats') || '{}');
         stats.reports = (stats.reports || 0) + 1;
+        stats.points = (stats.points || 0) + 10; // 10 Punkte pro Meldung
         localStorage.setItem('userStats', JSON.stringify(stats));
         
         this.loadUserStats();
-        this.showNotification('Parkplatz erfolgreich gemeldet!', 'success');
+        this.showNotification('Parkplatz erfolgreich gemeldet! +10 Punkte erhalten!', 'success');
         
         // Form zurücksetzen
         document.getElementById('report-form').reset();
+        document.getElementById('photo-preview').innerHTML = `
+            <div class="upload-placeholder">
+                <span class="upload-icon">📸</span>
+                <p>Foto aufnehmen oder auswählen</p>
+                <p class="upload-hint">Parkplatz und Schild müssen sichtbar sein</p>
+            </div>
+        `;
+        document.getElementById('selected-coordinates').textContent = 'Noch nicht markiert';
+        document.getElementById('time-restrictions-group').style.display = 'none';
     }
 }
 
@@ -1032,6 +1149,100 @@ function saveSettings() {
     
     localStorage.setItem('userSettings', JSON.stringify(settings));
     app.showNotification('Einstellungen gespeichert!', 'success');
+}
+
+function sendChallenge() {
+    const targetUser = document.getElementById('challenge-user').value;
+    const duration = document.getElementById('challenge-duration').value;
+    
+    if (!targetUser) {
+        app.showNotification('Bitte wählen Sie einen Benutzer aus', 'error');
+        return;
+    }
+    
+    const challenge = {
+        id: Date.now(),
+        from: app.currentUser.id,
+        fromName: app.currentUser.name,
+        to: targetUser,
+        duration: parseInt(duration),
+        startDate: new Date().toISOString(),
+        endDate: new Date(Date.now() + parseInt(duration) * 24 * 60 * 60 * 1000).toISOString(),
+        status: 'pending',
+        fromPoints: 0,
+        toPoints: 0
+    };
+    
+    // Herausforderung speichern
+    const challenges = JSON.parse(localStorage.getItem('duelChallenges') || '[]');
+    challenges.push(challenge);
+    localStorage.setItem('duelChallenges', JSON.stringify(challenges));
+    
+    app.showNotification(`Herausforderung an ${targetUser} gesendet!`, 'success');
+    document.getElementById('challenge-user').value = '';
+}
+
+function acceptChallenge(challengeId) {
+    const challenges = JSON.parse(localStorage.getItem('duelChallenges') || '[]');
+    const challenge = challenges.find(c => c.id === challengeId);
+    
+    if (challenge) {
+        challenge.status = 'active';
+        localStorage.setItem('duelChallenges', JSON.stringify(challenges));
+        app.showNotification('Herausforderung angenommen!', 'success');
+        loadDuels();
+    }
+}
+
+function rejectChallenge(challengeId) {
+    const challenges = JSON.parse(localStorage.getItem('duelChallenges') || '[]');
+    const filteredChallenges = challenges.filter(c => c.id !== challengeId);
+    localStorage.setItem('duelChallenges', JSON.stringify(filteredChallenges));
+    app.showNotification('Herausforderung abgelehnt', 'info');
+    loadDuels();
+}
+
+function loadDuels() {
+    const challenges = JSON.parse(localStorage.getItem('duelChallenges') || '[]');
+    const currentUser = app.currentUser;
+    
+    // Herausforderungen anzeigen
+    const requestsList = document.getElementById('duel-requests-list');
+    const pendingChallenges = challenges.filter(c => c.to === currentUser.id && c.status === 'pending');
+    
+    if (pendingChallenges.length === 0) {
+        requestsList.innerHTML = '<p class="no-duels">Keine ausstehenden Herausforderungen</p>';
+    } else {
+        requestsList.innerHTML = pendingChallenges.map(challenge => `
+            <div class="duel-item">
+                <h5>Herausforderung von ${challenge.fromName}</h5>
+                <p>Dauer: ${challenge.duration} Tage</p>
+                <p>Start: ${new Date(challenge.startDate).toLocaleDateString('de-DE')}</p>
+                <div class="duel-actions">
+                    <button class="duel-btn" onclick="acceptChallenge(${challenge.id})">Annehmen</button>
+                    <button class="duel-btn reject" onclick="rejectChallenge(${challenge.id})">Ablehnen</button>
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    // Aktive Duelle anzeigen
+    const activeList = document.getElementById('active-duels-list');
+    const activeDuels = challenges.filter(c => 
+        (c.from === currentUser.id || c.to === currentUser.id) && c.status === 'active'
+    );
+    
+    if (activeDuels.length === 0) {
+        activeList.innerHTML = '<p class="no-duels">Keine aktiven Duelle</p>';
+    } else {
+        activeList.innerHTML = activeDuels.map(duel => `
+            <div class="duel-item">
+                <h5>Duell gegen ${duel.from === currentUser.id ? duel.to : duel.fromName}</h5>
+                <p>Ende: ${new Date(duel.endDate).toLocaleDateString('de-DE')}</p>
+                <p>Punkte: ${duel.fromPoints} vs ${duel.toPoints}</p>
+            </div>
+        `).join('');
+    }
 }
 
 // Service Worker für PWA-Funktionalität (optional)

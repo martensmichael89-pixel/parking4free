@@ -933,7 +933,7 @@ select:focus {
 /* Statistics */
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 1rem;
 }
 
@@ -943,6 +943,11 @@ select:focus {
     background: #1a1a1a;
     border-radius: 8px;
     border: 1px solid #333333;
+}
+
+.points-item {
+    border-color: #4ade80;
+    background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
 }
 
 .stat-number {
@@ -959,9 +964,162 @@ select:focus {
     font-weight: 500;
 }
 
+.points-info {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: #1a1a1a;
+    border-radius: 5px;
+    border-left: 3px solid #4ade80;
+}
+
+.points-info p {
+    color: #cccccc;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.points-info strong {
+    color: #4ade80;
+}
+
 /* Report Form */
 .report-form {
     margin-top: 1rem;
+}
+
+.report-info {
+    background: #1a1a1a;
+    padding: 1rem;
+    border-radius: 5px;
+    margin-bottom: 1rem;
+    border-left: 3px solid #4ade80;
+}
+
+.report-info p {
+    color: #cccccc;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.report-info strong {
+    color: #4ade80;
+}
+
+.location-selector {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.location-btn {
+    background: #4ade80;
+    color: #000000;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.location-btn:hover {
+    background: #22c55e;
+}
+
+.coordinates-display {
+    color: #cccccc;
+    font-size: 0.8rem;
+    font-family: monospace;
+}
+
+.time-restrictions {
+    background: #1a1a1a;
+    padding: 1rem;
+    border-radius: 5px;
+}
+
+.time-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.time-row input[type="time"] {
+    background: #0a0a0a;
+    color: #ffffff;
+    border: 1px solid #333333;
+    border-radius: 3px;
+    padding: 0.3rem;
+    font-size: 0.9rem;
+}
+
+.days-row {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.days-row label {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    color: #cccccc;
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+
+.days-row input[type="checkbox"] {
+    width: 14px;
+    height: 14px;
+    accent-color: #4ade80;
+}
+
+.photo-upload {
+    border: 2px dashed #333333;
+    border-radius: 5px;
+    padding: 1rem;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.photo-upload:hover {
+    border-color: #4ade80;
+}
+
+.photo-upload input[type="file"] {
+    display: none;
+}
+
+.upload-placeholder {
+    color: #888888;
+}
+
+.upload-icon {
+    font-size: 2rem;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.upload-hint {
+    font-size: 0.8rem;
+    color: #666666;
+    margin-top: 0.5rem;
+}
+
+.photo-preview img {
+    max-width: 100%;
+    max-height: 200px;
+    border-radius: 5px;
+    margin-top: 1rem;
+}
+
+.btn-icon {
+    margin-right: 0.5rem;
 }
 
 .report-form textarea {
@@ -1000,6 +1158,91 @@ select:focus {
     width: 18px;
     height: 18px;
     accent-color: #4ade80;
+}
+
+/* Duell System */
+.duel-section {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.duel-challenge,
+.duel-requests,
+.duel-active {
+    background: #1a1a1a;
+    padding: 1rem;
+    border-radius: 5px;
+    border: 1px solid #333333;
+}
+
+.duel-challenge h4,
+.duel-requests h4,
+.duel-active h4 {
+    color: #4ade80;
+    font-size: 1rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.no-duels {
+    color: #888888;
+    font-style: italic;
+    text-align: center;
+    padding: 1rem;
+    font-size: 0.9rem;
+}
+
+.duel-item {
+    background: #0a0a0a;
+    padding: 1rem;
+    border-radius: 5px;
+    margin-bottom: 0.5rem;
+    border-left: 3px solid #4ade80;
+}
+
+.duel-item h5 {
+    color: #4ade80;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.duel-item p {
+    color: #cccccc;
+    font-size: 0.8rem;
+    margin-bottom: 0.3rem;
+}
+
+.duel-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.duel-btn {
+    background: #4ade80;
+    color: #000000;
+    border: none;
+    padding: 0.3rem 0.8rem;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.duel-btn:hover {
+    background: #22c55e;
+}
+
+.duel-btn.reject {
+    background: #ef4444;
+    color: #ffffff;
+}
+
+.duel-btn.reject:hover {
+    background: #dc2626;
 }
 
 /* Member Only Navigation */
@@ -1083,6 +1326,52 @@ select:focus {
     .report-form textarea {
         font-size: 0.9rem;
         padding: 0.6rem;
+    }
+    
+    .location-selector {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .location-btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .time-restrictions {
+        padding: 0.8rem;
+    }
+    
+    .time-row {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .days-row {
+        justify-content: center;
+    }
+    
+    .photo-upload {
+        padding: 0.8rem;
+    }
+    
+    .duel-section {
+        gap: 1rem;
+    }
+    
+    .duel-challenge,
+    .duel-requests,
+    .duel-active {
+        padding: 0.8rem;
+    }
+    
+    .duel-actions {
+        flex-direction: column;
+    }
+    
+    .duel-btn {
+        width: 100%;
+        text-align: center;
     }
 }
 
