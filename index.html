@@ -61,6 +61,55 @@
                 password: 'admin123'
             }));
         };
+
+        // Direkte Login-Funktion für das Frontend
+        window.directLogin = function() {
+            const email = document.getElementById('login-email')?.value || 'admin@parking4free.de';
+            const password = document.getElementById('login-password')?.value || 'admin123';
+            
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', 'https://parking4free-backend.onrender.com/api/auth/login', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    const data = JSON.parse(xhr.responseText);
+                    console.log('DIRECT LOGIN SUCCESS:', data);
+                    
+                    // Token speichern
+                    localStorage.setItem('token', data.token);
+                    
+                    // UI aktualisieren
+                    const userActions = document.getElementById('user-actions');
+                    const userProfile = document.getElementById('user-profile');
+                    const username = document.getElementById('username');
+                    
+                    if (userActions && userProfile && username) {
+                        userActions.style.display = 'none';
+                        userProfile.style.display = 'flex';
+                        username.textContent = data.user.name;
+                    }
+                    
+                    // Modal schließen
+                    const loginModal = document.getElementById('login-modal');
+                    if (loginModal) {
+                        loginModal.style.display = 'none';
+                    }
+                    
+                    alert('Login erfolgreich! Willkommen, ' + data.user.name);
+                } else {
+                    console.error('DIRECT LOGIN ERROR:', xhr.status, xhr.responseText);
+                    alert('Login fehlgeschlagen: ' + xhr.status + ' - ' + xhr.responseText);
+                }
+            };
+            
+            xhr.onerror = function() {
+                console.error('DIRECT LOGIN NETWORK ERROR:', xhr.statusText);
+                alert('Verbindungsfehler: ' + xhr.statusText);
+            };
+            
+            xhr.send(JSON.stringify({ email, password }));
+        };
     </script>
 </head>
 <body>
