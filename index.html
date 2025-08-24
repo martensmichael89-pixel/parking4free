@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parking4Free - Kostenlose Parkplätze finden</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="config.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Header mit Navigation -->
+        <header class="header">
+            <div class="logo">
+                <h1>Parking4Free</h1>
+            </div>
+            <nav class="nav">
+                <ul class="nav-list">
+                    <li><a href="#home" class="nav-link active" data-section="home">Home</a></li>
+                    <li><a href="#map" class="nav-link" data-section="map">Map</a></li>
+                    <li><a href="#list" class="nav-link" data-section="list">List</a></li>
+                    <li><a href="#search" class="nav-link" data-section="search">Suche</a></li>
+                </ul>
+            </nav>
+            <div class="user-menu">
+                <div class="user-actions" id="user-actions">
+                    <button class="login-btn" id="login-btn">Login</button>
+                    <button class="register-btn" id="register-btn">Registrieren</button>
+                </div>
+                <div class="user-profile" id="user-profile" style="display: none;">
+                    <span class="username" id="username">Benutzer</span>
+                    <button class="logout-btn" id="logout-btn">Logout</button>
+                </div>
+            </div>
+            <div class="mobile-menu-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </header>
+
+        <!-- Hauptinhalt -->
+        <main class="main-content">
+            <!-- Home Section -->
+            <section id="home" class="section active">
+                <div class="hero">
+                    <h2>Finde kostenlose Parkplätze in deiner Nähe!</h2>
+                    <div class="postal-search">
+                        <input type="text" id="postal-search" placeholder="Postleitzahl eingeben (z.B. 10115)" class="postal-input" maxlength="5">
+                        <button id="postal-search-btn" class="postal-search-btn">Suchen</button>
+                    </div>
+                    <div id="home-map" class="home-map"></div>
+                </div>
+            </section>
+
+            <!-- Map Section -->
+            <section id="map" class="section">
+                <div class="map-container">
+                    <div class="map-controls">
+                        <input type="text" id="location-search" placeholder="Ort oder Adresse eingeben..." class="search-input">
+                        <button id="search-btn" class="search-btn">Suchen</button>
+                    </div>
+                    <div id="main-map" class="map"></div>
+                </div>
+            </section>
+
+            <!-- List Section -->
+            <section id="list" class="section">
+                <div class="list-container">
+                    <div class="list-header">
+                        <h2>Verfügbare Parkplätze</h2>
+                        <div class="list-filters">
+                            <select id="city-filter" class="filter-select">
+                                <option value="">Alle Städte</option>
+                                <option value="Berlin">Berlin</option>
+                                <option value="Hamburg">Hamburg</option>
+                                <option value="München">München</option>
+                                <option value="Köln">Köln</option>
+                            </select>
+                            <select id="type-filter" class="filter-select">
+                                <option value="">Alle Typen</option>
+                                <option value="free">Kostenlos</option>
+                                <option value="paid">Kostenpflichtig</option>
+                                <option value="time-limited">Zeitlich begrenzt</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="parking-list" id="parking-list">
+                        <!-- Parkplätze werden hier dynamisch eingefügt -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Search Section -->
+            <section id="search" class="section">
+                <div class="search-container">
+                    <h2>Erweiterte Suche</h2>
+                    <div class="search-form">
+                        <div class="form-group">
+                            <label for="search-location">Standort</label>
+                            <input type="text" id="search-location" placeholder="Stadt, Adresse oder Postleitzahl" class="form-input">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="search-radius">Radius (km)</label>
+                                <select id="search-radius" class="form-select">
+                                    <option value="1">1 km</option>
+                                    <option value="5" selected>5 km</option>
+                                    <option value="10">10 km</option>
+                                    <option value="25">25 km</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="search-type">Parkplatz-Typ</label>
+                                <select id="search-type" class="form-select">
+                                    <option value="">Alle Typen</option>
+                                    <option value="free">Kostenlos</option>
+                                    <option value="paid">Kostenpflichtig</option>
+                                    <option value="time-limited">Zeitlich begrenzt</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="search-availability">Verfügbarkeit</label>
+                            <div class="checkbox-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="available-now" checked>
+                                    <span>Jetzt verfügbar</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="overnight">
+                                    <span>Übernachtung erlaubt</span>
+                                </label>
+                            </div>
+                        </div>
+                        <button type="button" id="advanced-search-btn" class="search-btn large">Suche starten</button>
+                    </div>
+                    <div class="search-results" id="search-results">
+                        <!-- Suchergebnisse werden hier angezeigt -->
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Parking4Free</h3>
+                    <p>Ihr zuverlässiger Begleiter für kostenlose Parkplätze</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Links</h4>
+                    <ul>
+                        <li><a href="#home">Home</a></li>
+                        <li><a href="#map">Karte</a></li>
+                        <li><a href="#list">Liste</a></li>
+                        <li><a href="#search">Suche</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Kontakt</h4>
+                    <p>Email: info@parking4free.de</p>
+                    <p>© 2025 Parking4Free</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    </div>
+
+    <!-- Login Modal -->
+    <div id="login-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="close-login">&times;</span>
+            <h2>Login</h2>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="login-email">Email</label>
+                    <input type="email" id="login-email" required>
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Passwort</label>
+                    <input type="password" id="login-password" required>
+                </div>
+                <button type="submit" class="submit-btn">Anmelden</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div id="register-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="close-register">&times;</span>
+            <h2>Registrieren</h2>
+            <form id="register-form">
+                <div class="form-group">
+                    <label for="register-name">Name</label>
+                    <input type="text" id="register-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="register-email">Email</label>
+                    <input type="email" id="register-email" required>
+                </div>
+                <div class="form-group">
+                    <label for="register-password">Passwort</label>
+                    <input type="password" id="register-password" required>
+                </div>
+                <div class="form-group">
+                    <label for="register-confirm">Passwort bestätigen</label>
+                    <input type="password" id="register-confirm" required>
+                </div>
+                <button type="submit" class="submit-btn">Registrieren</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
