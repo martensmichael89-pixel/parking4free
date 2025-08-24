@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Test</title>
+</head>
+<body>
+    <h1>API Test</h1>
+    <button onclick="test()">Test API</button>
+    <p id="result">Klicken Sie den Button</p>
+
+    <script>
+        function test() {
+            document.getElementById('result').innerHTML = 'Testing...';
+            
+            fetch('https://parking4free-backend.onrender.com/api/health')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('result').innerHTML = 'SUCCESS: ' + JSON.stringify(data);
+                })
+                .catch(error => {
+                    document.getElementById('result').innerHTML = 'ERROR: ' + error.message;
+                });
+        }
+    </script>
+</body>
+</html>
