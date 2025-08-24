@@ -1160,24 +1160,115 @@ select:focus {
     accent-color: #4ade80;
 }
 
-/* Duell System */
-.duel-section {
+/* Leaderboard System */
+.leaderboard-section {
     display: grid;
     gap: 1.5rem;
 }
 
-.duel-challenge,
-.duel-requests,
-.duel-active {
+.leaderboard-header {
+    background: #1a1a1a;
+    padding: 1rem;
+    border-radius: 5px;
+    border: 1px solid #333333;
+    text-align: center;
+}
+
+.leaderboard-header h4 {
+    color: #4ade80;
+    font-size: 1.1rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.leaderboard-header p {
+    color: #cccccc;
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.leaderboard-list {
     background: #1a1a1a;
     padding: 1rem;
     border-radius: 5px;
     border: 1px solid #333333;
 }
 
-.duel-challenge h4,
-.duel-requests h4,
-.duel-active h4 {
+.loading-leaderboard {
+    color: #888888;
+    text-align: center;
+    padding: 1rem;
+    font-style: italic;
+}
+
+.leaderboard-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.8rem;
+    margin-bottom: 0.5rem;
+    background: #0a0a0a;
+    border-radius: 5px;
+    border-left: 3px solid #4ade80;
+}
+
+.leaderboard-item.current-user {
+    border-left-color: #fbbf24;
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+}
+
+.leaderboard-rank {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    flex: 1;
+}
+
+.rank-number {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.rank-1 { background: #fbbf24; color: #000000; }
+.rank-2 { background: #9ca3af; color: #000000; }
+.rank-3 { background: #d97706; color: #ffffff; }
+.rank-other { background: #4ade80; color: #000000; }
+
+.user-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.user-name {
+    color: #4ade80;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.user-points {
+    color: #cccccc;
+    font-size: 0.8rem;
+}
+
+.user-position {
+    background: #1a1a1a;
+    padding: 1rem;
+    border-radius: 5px;
+    border: 1px solid #333333;
+}
+
+.user-position h4 {
     color: #4ade80;
     font-size: 1rem;
     font-weight: bold;
@@ -1187,62 +1278,17 @@ select:focus {
     gap: 0.5rem;
 }
 
-.no-duels {
-    color: #888888;
-    font-style: italic;
-    text-align: center;
-    padding: 1rem;
-    font-size: 0.9rem;
-}
-
-.duel-item {
+.user-position-info {
     background: #0a0a0a;
     padding: 1rem;
     border-radius: 5px;
-    margin-bottom: 0.5rem;
     border-left: 3px solid #4ade80;
 }
 
-.duel-item h5 {
-    color: #4ade80;
-    font-size: 0.9rem;
-    margin-bottom: 0.5rem;
-}
-
-.duel-item p {
+.user-position-info p {
     color: #cccccc;
-    font-size: 0.8rem;
-    margin-bottom: 0.3rem;
-}
-
-.duel-actions {
-    display: flex;
-    gap: 0.5rem;
-    margin-top: 0.5rem;
-}
-
-.duel-btn {
-    background: #4ade80;
-    color: #000000;
-    border: none;
-    padding: 0.3rem 0.8rem;
-    border-radius: 3px;
-    cursor: pointer;
-    font-size: 0.8rem;
-    font-weight: 500;
-}
-
-.duel-btn:hover {
-    background: #22c55e;
-}
-
-.duel-btn.reject {
-    background: #ef4444;
-    color: #ffffff;
-}
-
-.duel-btn.reject:hover {
-    background: #dc2626;
+    font-size: 0.9rem;
+    margin: 0;
 }
 
 /* Member Only Navigation */
@@ -1355,23 +1401,32 @@ select:focus {
         padding: 0.8rem;
     }
     
-    .duel-section {
+    .leaderboard-section {
         gap: 1rem;
     }
     
-    .duel-challenge,
-    .duel-requests,
-    .duel-active {
+    .leaderboard-header,
+    .leaderboard-list,
+    .user-position {
         padding: 0.8rem;
     }
     
-    .duel-actions {
-        flex-direction: column;
+    .leaderboard-item {
+        padding: 0.6rem;
     }
     
-    .duel-btn {
-        width: 100%;
-        text-align: center;
+    .rank-number {
+        width: 25px;
+        height: 25px;
+        font-size: 0.8rem;
+    }
+    
+    .user-name {
+        font-size: 0.8rem;
+    }
+    
+    .user-points {
+        font-size: 0.7rem;
     }
 }
 

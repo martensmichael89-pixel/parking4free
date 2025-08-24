@@ -23,6 +23,7 @@ class FreeParkApp {
         this.setupAuth();
         this.setupMemberEventListeners();
         this.loadParkingList();
+        this.loadReportedParkingSpots();
         this.checkAuthStatus();
     }
 
@@ -491,6 +492,127 @@ class FreeParkApp {
         parkingList.innerHTML = listHTML;
     }
 
+    loadReportedParkingSpots() {
+        // Gemeldete Parkplätze aus localStorage laden
+        const reportedSpots = JSON.parse(localStorage.getItem('userReports') || '[]');
+        
+        if (reportedSpots.length === 0) return;
+        
+        // Marker für gemeldete Parkplätze hinzufügen
+        reportedSpots.forEach(spot => {
+            if (spot.coordinates && spot.coordinates !== 'Noch nicht markiert') {
+                const [lat, lng] = spot.coordinates.split(', ').map(coord => parseFloat(coord));
+                
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    const marker = L.marker([lat, lng], {
+                        icon: L.divIcon({
+                            className: 'reported-parking-marker',
+                            html: '<div style="background: #4ade80; width: 20px; height: 20px; border-radius: 50%; border: 3px solid #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>',
+                            iconSize: [20, 20],
+                            iconAnchor: [10, 10]
+                        })
+                    });
+
+                    const popupContent = `
+                        <div style="min-width: 200px;">
+                            <h3 style="color: #4ade80; margin: 0 0 10px 0;">🚨 Gemeldeter Parkplatz</h3>
+                            <p><strong>Adresse:</strong> ${spot.address}</p>
+                            <p><strong>Typ:</strong> ${this.getReportedTypeLabel(spot.type)}</p>
+                            <p><strong>Gemeldet von:</strong> ${spot.userId}</p>
+                            <p><strong>Datum:</strong> ${new Date(spot.timestamp).toLocaleDateString('de-DE')}</p>
+                            ${spot.description ? `<p><strong>Beschreibung:</strong> ${spot.description}</p>` : ''}
+                            ${spot.timeRestrictions ? `<p><strong>Zeitliche Einschränkungen:</strong> ${this.formatTimeRestrictions(spot.timeRestrictions)}</p>` : ''}
+                            <div style="margin-top: 10px; padding: 5px; background: #1a1a1a; border-radius: 3px;">
+                                <small style="color: #888888;">Status: ${spot.status === 'pending' ? '⏳ Wartet auf Überprüfung' : '✅ Bestätigt'}</small>
+                            </div>
+                        </div>
+                    `;
+
+                    marker.bindPopup(popupContent);
+                    
+                    // Marker zur Karte hinzufügen
+                    if (this.map) {
+                        marker.addTo(this.map);
+                    }
+                    
+                    // Marker zur Liste hinzufügen für späteres Management
+                    if (!this.reportedMarkers) {
+                        this.reportedMarkers = [];
+                    }
+                    this.reportedMarkers.push(marker);
+                }
+            }
+        });
+    }
+
+    getReportedTypeLabel(type) {
+        switch (type) {
+            case 'permanent-free': return '🅿️ Dauerhaft kostenlos';
+            case 'time-limited': return '⏰ Zeitlich begrenzt';
+            case 'parking-disc': return '🕐 Parkscheibe erforderlich';
+            case 'restricted': return '⚠️ Eingeschränktes Halteverbot (aufgehoben)';
+            case 'absolute': return '🚫 Absolutes Halteverbot (aufgehoben)';
+            default: return '❓ Unbekannt';
+        }
+    }
+
+    formatTimeRestrictions(restrictions) {
+        if (!restrictions) return 'Keine';
+        
+        const days = {
+            'mo': 'Mo', 'di': 'Di', 'mi': 'Mi', 'do': 'Do', 
+            'fr': 'Fr', 'sa': 'Sa', 'so': 'So'
+        };
+        
+        const dayNames = restrictions.days.map(day => days[day]).join(', ');
+        return `${restrictions.from} - ${restrictions.to} Uhr (${dayNames})`;
+    }
+
+    addReportedSpotToMap(report) {
+        if (!report.coordinates || report.coordinates === 'Noch nicht markiert') return;
+        
+        const [lat, lng] = report.coordinates.split(', ').map(coord => parseFloat(coord));
+        
+        if (isNaN(lat) || isNaN(lng)) return;
+        
+        const marker = L.marker([lat, lng], {
+            icon: L.divIcon({
+                className: 'reported-parking-marker',
+                html: '<div style="background: #4ade80; width: 20px; height: 20px; border-radius: 50%; border: 3px solid #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>',
+                iconSize: [20, 20],
+                iconAnchor: [10, 10]
+            })
+        });
+
+        const popupContent = `
+            <div style="min-width: 200px;">
+                <h3 style="color: #4ade80; margin: 0 0 10px 0;">🚨 Gemeldeter Parkplatz</h3>
+                <p><strong>Adresse:</strong> ${report.address}</p>
+                <p><strong>Typ:</strong> ${this.getReportedTypeLabel(report.type)}</p>
+                <p><strong>Gemeldet von:</strong> ${report.userId}</p>
+                <p><strong>Datum:</strong> ${new Date(report.timestamp).toLocaleDateString('de-DE')}</p>
+                ${report.description ? `<p><strong>Beschreibung:</strong> ${report.description}</p>` : ''}
+                ${report.timeRestrictions ? `<p><strong>Zeitliche Einschränkungen:</strong> ${this.formatTimeRestrictions(report.timeRestrictions)}</p>` : ''}
+                <div style="margin-top: 10px; padding: 5px; background: #1a1a1a; border-radius: 3px;">
+                    <small style="color: #888888;">Status: ${report.status === 'pending' ? '⏳ Wartet auf Überprüfung' : '✅ Bestätigt'}</small>
+                </div>
+            </div>
+        `;
+
+        marker.bindPopup(popupContent);
+        
+        // Marker zur Karte hinzufügen
+        if (this.map) {
+            marker.addTo(this.map);
+        }
+        
+        // Marker zur Liste hinzufügen
+        if (!this.reportedMarkers) {
+            this.reportedMarkers = [];
+        }
+        this.reportedMarkers.push(marker);
+    }
+
     filterParkingList() {
         const cityFilter = document.getElementById('city-filter');
         const typeFilter = document.getElementById('type-filter');
@@ -909,6 +1031,9 @@ class FreeParkApp {
         
         // Einstellungen laden
         this.loadSettings();
+        
+        // Rangliste laden
+        loadLeaderboard();
     }
 
     loadUserStats() {
@@ -1097,6 +1222,9 @@ class FreeParkApp {
         this.loadUserStats();
         this.showNotification('Parkplatz erfolgreich gemeldet! +10 Punkte erhalten!', 'success');
         
+        // Neuen Marker zur Karte hinzufügen
+        this.addReportedSpotToMap(report);
+        
         // Form zurücksetzen
         document.getElementById('report-form').reset();
         document.getElementById('photo-preview').innerHTML = `
@@ -1151,97 +1279,90 @@ function saveSettings() {
     app.showNotification('Einstellungen gespeichert!', 'success');
 }
 
-function sendChallenge() {
-    const targetUser = document.getElementById('challenge-user').value;
-    const duration = document.getElementById('challenge-duration').value;
-    
-    if (!targetUser) {
-        app.showNotification('Bitte wählen Sie einen Benutzer aus', 'error');
-        return;
-    }
-    
-    const challenge = {
-        id: Date.now(),
-        from: app.currentUser.id,
-        fromName: app.currentUser.name,
-        to: targetUser,
-        duration: parseInt(duration),
-        startDate: new Date().toISOString(),
-        endDate: new Date(Date.now() + parseInt(duration) * 24 * 60 * 60 * 1000).toISOString(),
-        status: 'pending',
-        fromPoints: 0,
-        toPoints: 0
-    };
-    
-    // Herausforderung speichern
-    const challenges = JSON.parse(localStorage.getItem('duelChallenges') || '[]');
-    challenges.push(challenge);
-    localStorage.setItem('duelChallenges', JSON.stringify(challenges));
-    
-    app.showNotification(`Herausforderung an ${targetUser} gesendet!`, 'success');
-    document.getElementById('challenge-user').value = '';
-}
-
-function acceptChallenge(challengeId) {
-    const challenges = JSON.parse(localStorage.getItem('duelChallenges') || '[]');
-    const challenge = challenges.find(c => c.id === challengeId);
-    
-    if (challenge) {
-        challenge.status = 'active';
-        localStorage.setItem('duelChallenges', JSON.stringify(challenges));
-        app.showNotification('Herausforderung angenommen!', 'success');
-        loadDuels();
-    }
-}
-
-function rejectChallenge(challengeId) {
-    const challenges = JSON.parse(localStorage.getItem('duelChallenges') || '[]');
-    const filteredChallenges = challenges.filter(c => c.id !== challengeId);
-    localStorage.setItem('duelChallenges', JSON.stringify(filteredChallenges));
-    app.showNotification('Herausforderung abgelehnt', 'info');
-    loadDuels();
-}
-
-function loadDuels() {
-    const challenges = JSON.parse(localStorage.getItem('duelChallenges') || '[]');
+function loadLeaderboard() {
+    // Alle Benutzer mit Punkten sammeln
+    const allUsers = JSON.parse(localStorage.getItem('allUsers') || '[]');
     const currentUser = app.currentUser;
     
-    // Herausforderungen anzeigen
-    const requestsList = document.getElementById('duel-requests-list');
-    const pendingChallenges = challenges.filter(c => c.to === currentUser.id && c.status === 'pending');
-    
-    if (pendingChallenges.length === 0) {
-        requestsList.innerHTML = '<p class="no-duels">Keine ausstehenden Herausforderungen</p>';
-    } else {
-        requestsList.innerHTML = pendingChallenges.map(challenge => `
-            <div class="duel-item">
-                <h5>Herausforderung von ${challenge.fromName}</h5>
-                <p>Dauer: ${challenge.duration} Tage</p>
-                <p>Start: ${new Date(challenge.startDate).toLocaleDateString('de-DE')}</p>
-                <div class="duel-actions">
-                    <button class="duel-btn" onclick="acceptChallenge(${challenge.id})">Annehmen</button>
-                    <button class="duel-btn reject" onclick="rejectChallenge(${challenge.id})">Ablehnen</button>
-                </div>
-            </div>
-        `).join('');
+    // Demo-Benutzer hinzufügen falls keine vorhanden
+    if (allUsers.length === 0) {
+        const demoUsers = [
+            { id: 'user1', name: 'Max', points: 150, reports: 15 },
+            { id: 'user2', name: 'Anna', points: 120, reports: 12 },
+            { id: 'user3', name: 'Tom', points: 90, reports: 9 },
+            { id: 'user4', name: 'Lisa', points: 80, reports: 8 },
+            { id: 'user5', name: 'Paul', points: 70, reports: 7 },
+            { id: 'user6', name: 'Sarah', points: 60, reports: 6 },
+            { id: 'user7', name: 'Felix', points: 50, reports: 5 },
+            { id: 'user8', name: 'Emma', points: 40, reports: 4 },
+            { id: 'user9', name: 'Lukas', points: 30, reports: 3 },
+            { id: 'user10', name: 'Julia', points: 20, reports: 2 }
+        ];
+        localStorage.setItem('allUsers', JSON.stringify(demoUsers));
     }
     
-    // Aktive Duelle anzeigen
-    const activeList = document.getElementById('active-duels-list');
-    const activeDuels = challenges.filter(c => 
-        (c.from === currentUser.id || c.to === currentUser.id) && c.status === 'active'
-    );
+    // Aktuelle Benutzer laden
+    const users = JSON.parse(localStorage.getItem('allUsers') || '[]');
     
-    if (activeDuels.length === 0) {
-        activeList.innerHTML = '<p class="no-duels">Keine aktiven Duelle</p>';
+    // Aktuellen Benutzer hinzufügen falls nicht vorhanden
+    if (currentUser && !users.find(u => u.id === currentUser.id)) {
+        const userStats = JSON.parse(localStorage.getItem('userStats') || '{}');
+        users.push({
+            id: currentUser.id,
+            name: currentUser.name.split(' ')[0], // Nur Vorname
+            points: userStats.points || 0,
+            reports: userStats.reports || 0
+        });
+        localStorage.setItem('allUsers', JSON.stringify(users));
+    }
+    
+    // Nach Punkten sortieren (absteigend)
+    users.sort((a, b) => b.points - a.points);
+    
+    // Top 10 anzeigen
+    const top10 = users.slice(0, 10);
+    const leaderboardList = document.getElementById('leaderboard-list');
+    
+    if (top10.length === 0) {
+        leaderboardList.innerHTML = '<p class="loading-leaderboard">Keine Daten verfügbar</p>';
     } else {
-        activeList.innerHTML = activeDuels.map(duel => `
-            <div class="duel-item">
-                <h5>Duell gegen ${duel.from === currentUser.id ? duel.to : duel.fromName}</h5>
-                <p>Ende: ${new Date(duel.endDate).toLocaleDateString('de-DE')}</p>
-                <p>Punkte: ${duel.fromPoints} vs ${duel.toPoints}</p>
-            </div>
-        `).join('');
+        leaderboardList.innerHTML = top10.map((user, index) => {
+            const rank = index + 1;
+            const rankClass = rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : 'rank-other';
+            const isCurrentUser = currentUser && user.id === currentUser.id;
+            
+            return `
+                <div class="leaderboard-item ${isCurrentUser ? 'current-user' : ''}">
+                    <div class="leaderboard-rank">
+                        <div class="rank-number ${rankClass}">${rank}</div>
+                        <div class="user-info">
+                            <div class="user-name">${user.name}</div>
+                            <div class="user-points">${user.reports} Parkplätze gemeldet</div>
+                        </div>
+                    </div>
+                    <div class="user-points">${user.points} Punkte</div>
+                </div>
+            `;
+        }).join('');
+    }
+    
+    // Benutzer-Position anzeigen
+    const userPositionInfo = document.getElementById('user-position-info');
+    if (currentUser) {
+        const userRank = users.findIndex(u => u.id === currentUser.id) + 1;
+        const userStats = JSON.parse(localStorage.getItem('userStats') || '{}');
+        
+        if (userRank > 0) {
+            userPositionInfo.innerHTML = `
+                <p><strong>Rang:</strong> ${userRank} von ${users.length}</p>
+                <p><strong>Punkte:</strong> ${userStats.points || 0}</p>
+                <p><strong>Gemeldete Parkplätze:</strong> ${userStats.reports || 0}</p>
+            `;
+        } else {
+            userPositionInfo.innerHTML = '<p>Noch keine Punkte gesammelt</p>';
+        }
+    } else {
+        userPositionInfo.innerHTML = '<p>Bitte einloggen um Ihre Position zu sehen</p>';
     }
 }
 

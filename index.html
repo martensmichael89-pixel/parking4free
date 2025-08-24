@@ -199,42 +199,19 @@
                         </div>
 
                         <div class="member-card">
-                            <h3>⚔️ Duell-System</h3>
-                            <div class="duel-section">
-                                <div class="duel-challenge">
-                                    <h4>🎯 Herausforderung senden</h4>
-                                    <div class="form-group">
-                                        <label for="challenge-user">Benutzer auswählen</label>
-                                        <select id="challenge-user">
-                                            <option value="">Benutzer wählen...</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="challenge-duration">Dauer (Tage)</label>
-                                        <select id="challenge-duration">
-                                            <option value="1">1 Tag</option>
-                                            <option value="3">3 Tage</option>
-                                            <option value="7" selected>1 Woche</option>
-                                            <option value="30">1 Monat</option>
-                                        </select>
-                                    </div>
-                                    <button class="member-btn" onclick="sendChallenge()">
-                                        <span class="btn-icon">⚔️</span>
-                                        Herausforderung senden
-                                    </button>
+                            <h3>🏆 Top 10 Rangliste</h3>
+                            <div class="leaderboard-section">
+                                <div class="leaderboard-header">
+                                    <h4>🥇 Beste Parkplatz-Finder</h4>
+                                    <p>Rangliste basierend auf gemeldeten Parkplätzen</p>
                                 </div>
-                                
-                                <div class="duel-requests">
-                                    <h4>📨 Herausforderungen</h4>
-                                    <div id="duel-requests-list">
-                                        <p class="no-duels">Keine ausstehenden Herausforderungen</p>
-                                    </div>
+                                <div class="leaderboard-list" id="leaderboard-list">
+                                    <div class="loading-leaderboard">Lade Rangliste...</div>
                                 </div>
-                                
-                                <div class="duel-active">
-                                    <h4>🏆 Aktive Duelle</h4>
-                                    <div id="active-duels-list">
-                                        <p class="no-duels">Keine aktiven Duelle</p>
+                                <div class="user-position">
+                                    <h4>🎯 Ihre Position</h4>
+                                    <div id="user-position-info">
+                                        <p>Noch keine Punkte gesammelt</p>
                                     </div>
                                 </div>
                             </div>
