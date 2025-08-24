@@ -9,7 +9,7 @@ class FreeParkApp {
         this.currentSection = 'home';
         this.parkingData = this.generateSampleData();
         this.currentUser = null;
-        this.apiBaseUrl = window.Parking4FreeConfig?.apiBaseUrl || 'http://localhost:3001/api';
+        this.apiBaseUrl = window.Parking4FreeConfig?.apiBaseUrl || 'http://localhost:3000/api';
         
         this.init();
     }
