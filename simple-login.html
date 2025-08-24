@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Login</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        input, button { margin: 10px; padding: 10px; }
+        .result { margin: 20px; padding: 10px; border-radius: 5px; }
+        .success { background: #d4edda; }
+        .error { background: #f8d7da; }
+    </style>
+</head>
+<body>
+    <h1>Simple Login Test</h1>
+    <input type="email" id="email" value="admin@parking4free.de" placeholder="Email">
+    <input type="password" id="password" value="admin123" placeholder="Password">
+    <button onclick="login()">Login</button>
+    <div id="result"></div>
+
+    <script>
+        function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            document.getElementById('result').innerHTML = 'Testing...';
+            
+            // Methode 1: Fetch mit no-cors
+            fetch('https://parking4free-backend.onrender.com/api/auth/login', {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            })
+            .then(response => {
+                document.getElementById('result').innerHTML = 'Fetch no-cors: ' + response.status;
+            })
+            .catch(error => {
+                document.getElementById('result').innerHTML = 'Fetch error: ' + error.message;
+            });
+            
+            // Methode 2: XHR
+            setTimeout(() => {
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', 'https://parking4free-backend.onrender.com/api/auth/login', true);
+                xhr.setRequestHeader('Content-Type', 'application/json');
+                
+                xhr.onload = function() {
+                    if (xhr.status === 200) {
+                        try {
+                            const data = JSON.parse(xhr.responseText);
+                            document.getElementById('result').innerHTML = 
+                                '<div class="success">XHR SUCCESS: ' + data.user.name + '</div>';
+                            localStorage.setItem('token', data.token);
+                        } catch (e) {
+                            document.getElementById('result').innerHTML = 
+                                '<div class="error">XHR JSON Error: ' + e.message + '</div>';
+                        }
+                    } else {
+                        document.getElementById('result').innerHTML = 
+                            '<div class="error">XHR Error: ' + xhr.status + '</div>';
+                    }
+                };
+                
+                xhr.onerror = function() {
+                    document.getElementById('result').innerHTML = 
+                        '<div class="error">XHR Network Error</div>';
+                };
+                
+                xhr.send(JSON.stringify({ email, password }));
+            }, 1000);
+        }
+    </script>
+</body>
+</html>

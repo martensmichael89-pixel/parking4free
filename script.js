@@ -659,7 +659,40 @@ class FreeParkApp {
 
         console.log('Login-Versuch mit:', { email, password: '***' });
 
-        // Verwende XMLHttpRequest statt fetch um CSP-Probleme zu umgehen
+        // Versuche zuerst mit fetch (für moderne Browser)
+        fetch('https://parking4free-backend.onrender.com/api/auth/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email, password })
+        })
+        .then(response => {
+            console.log('Fetch Response Status:', response.status);
+            if (response.ok) {
+                return response.json();
+            } else {
+                throw new Error(`HTTP ${response.status}`);
+            }
+        })
+        .then(data => {
+            console.log('Login erfolgreich (Fetch):', data);
+            this.currentUser = data.user;
+            localStorage.setItem('token', data.token);
+            this.updateAuthUI();
+            this.hideModal(document.getElementById('login-modal'));
+            this.showNotification('Erfolgreich angemeldet!', 'success');
+        })
+        .catch(error => {
+            console.error('Fetch Error:', error);
+            
+            // Fallback: XMLHttpRequest
+            console.log('Versuche XMLHttpRequest als Fallback...');
+            this.handleLoginXHR(email, password);
+        });
+    }
+
+    handleLoginXHR(email, password) {
         const xhr = new XMLHttpRequest();
         xhr.open('POST', 'https://parking4free-backend.onrender.com/api/auth/login', true);
         xhr.setRequestHeader('Content-Type', 'application/json');
@@ -671,7 +704,7 @@ class FreeParkApp {
             if (xhr.status === 200) {
                 try {
                     const data = JSON.parse(xhr.responseText);
-                    console.log('Login erfolgreich:', data);
+                    console.log('Login erfolgreich (XHR):', data);
                     this.currentUser = data.user;
                     localStorage.setItem('token', data.token);
                     this.updateAuthUI();
@@ -689,7 +722,7 @@ class FreeParkApp {
         
         xhr.onerror = (error) => {
             console.error('XHR Network Error:', error);
-            this.showNotification('Verbindungsfehler', 'error');
+            this.showNotification('Verbindungsfehler - Backend nicht erreichbar', 'error');
         };
         
         xhr.ontimeout = () => {
@@ -697,7 +730,7 @@ class FreeParkApp {
             this.showNotification('Zeitüberschreitung', 'error');
         };
         
-        xhr.timeout = 10000; // 10 Sekunden Timeout
+        xhr.timeout = 15000; // 15 Sekunden Timeout
         xhr.send(JSON.stringify({ email, password }));
     }
 
