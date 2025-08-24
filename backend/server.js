@@ -17,16 +17,35 @@ const PORT = process.env.PORT || 3001;
 app.use(helmet({
     contentSecurityPolicy: false
 }));
-app.use(cors({
-    origin: [
-        'http://localhost:8003', 
-        'http://localhost:3000', 
-        'https://your-domain.netlify.app',
-        'https://martensmichael89-pixel.github.io',
-        'https://incredible-blini-fce158.netlify.app'
-    ],
-    credentials: true
-}));
+// CORS-Konfiguration
+const corsOptions = {
+    origin: function (origin, callback) {
+        // Erlaube alle Origins für Entwicklung
+        if (!origin || origin.includes('localhost') || origin.includes('github.io') || origin.includes('netlify.app')) {
+            callback(null, true);
+        } else {
+            callback(new Error('CORS nicht erlaubt'));
+        }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+};
+
+app.use(cors(corsOptions));
+
+// Zusätzliche CORS-Headers für alle Routen
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+    
+    if (req.method === 'OPTIONS') {
+        res.sendStatus(200);
+    } else {
+        next();
+    }
+});
 
 // Rate Limiting
 const limiter = rateLimit({
