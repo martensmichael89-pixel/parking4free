@@ -921,11 +921,11 @@ select:focus {
 
 /* Member Only Navigation */
 .member-only {
-    display: none !important;
+    display: none;
 }
 
 .member-only.show {
-    display: block !important;
+    display: block;
 }
 
 /* Responsive Design für Member Section */

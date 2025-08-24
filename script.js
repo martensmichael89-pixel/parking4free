@@ -796,7 +796,10 @@ class FreeParkApp {
         const userActions = document.getElementById('user-actions');
         const userProfile = document.getElementById('user-profile');
         const username = document.getElementById('username');
-        const memberNav = document.querySelector('.member-only');
+        const memberNav = document.querySelector('[data-section="member"]');
+
+        console.log('updateAuthUI called, currentUser:', this.currentUser);
+        console.log('memberNav found:', memberNav);
 
         if (this.currentUser) {
             userActions.style.display = 'none';
@@ -807,6 +810,9 @@ class FreeParkApp {
             if (memberNav) {
                 memberNav.style.display = 'block';
                 memberNav.classList.add('show');
+                console.log('Member nav shown');
+            } else {
+                console.log('Member nav not found');
             }
             
             // Mitgliederbereich-Daten laden
@@ -819,6 +825,7 @@ class FreeParkApp {
             if (memberNav) {
                 memberNav.style.display = 'none';
                 memberNav.classList.remove('show');
+                console.log('Member nav hidden');
             }
         }
     }
