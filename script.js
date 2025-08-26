@@ -830,11 +830,11 @@ class FreeParkApp {
         }
         
         if (this.logoutBtn) {
-            this.logoutBtn.addEventListener('click', () => this.handleLogout());
-            this.logoutBtn.addEventListener('touchend', (e) => {
-                e.preventDefault();
-                this.handleLogout();
-            });
+                    this.logoutBtn.addEventListener('click', () => this.logout());
+        this.logoutBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            this.logout();
+        });
         }
         
         if (this.memberBtn) {
@@ -904,6 +904,21 @@ class FreeParkApp {
                 this.hideModal(this.reportParkingModal);
             }
         });
+
+        // Zusätzliche Logout-Event-Listener für bessere Kompatibilität
+        setTimeout(() => {
+            const logoutBtn = document.getElementById('logout-btn');
+            if (logoutBtn) {
+                console.log('Logout-Button gefunden, Event-Listener hinzugefügt');
+                logoutBtn.onclick = () => this.logout();
+                logoutBtn.ontouchend = (e) => {
+                    e.preventDefault();
+                    this.logout();
+                };
+            } else {
+                console.error('Logout-Button nicht gefunden!');
+            }
+        }, 100);
     }
 
     setupReportFormListeners() {
@@ -1150,10 +1165,12 @@ class FreeParkApp {
     }
 
     logout() {
+        console.log('Logout aufgerufen');
         this.currentUser = null;
         localStorage.removeItem('token');
         this.updateAuthUI();
         this.showNotification('Erfolgreich abgemeldet', 'success');
+        console.log('Logout abgeschlossen');
     }
 
     // Parkplatz Melden Funktionen
