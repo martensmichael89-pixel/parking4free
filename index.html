@@ -79,8 +79,17 @@
             <section id="list" class="section">
                 <div class="list-container">
                     <div class="list-header">
-                        <h2>Verfügbare Parkplätze</h2>
-                        <div class="list-filters">
+                        <h2>📋 Parkplatz-Übersicht</h2>
+                        <div class="list-controls">
+                            <button id="sort-distance" class="sort-btn active">📍 Nach Entfernung</button>
+                            <button id="sort-type" class="sort-btn">🚦 Nach Typ</button>
+                            <button id="sort-date" class="sort-btn">📅 Nach Datum</button>
+                        </div>
+                    </div>
+                    
+                    <div class="list-filters">
+                        <div class="filter-group">
+                            <label for="city-filter">Stadt:</label>
                             <select id="city-filter" class="filter-select">
                                 <option value="">Alle Städte</option>
                                 <option value="Berlin">Berlin</option>
@@ -88,6 +97,9 @@
                                 <option value="München">München</option>
                                 <option value="Köln">Köln</option>
                             </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="type-filter">Typ:</label>
                             <select id="type-filter" class="filter-select">
                                 <option value="">Alle Typen</option>
                                 <option value="free">Kostenlos</option>
@@ -95,7 +107,27 @@
                                 <option value="time-limited">Zeitlich begrenzt</option>
                             </select>
                         </div>
+                        <div class="filter-group">
+                            <label for="search-parking">Suche:</label>
+                            <input type="text" id="search-parking" placeholder="Adresse oder Stadt...">
+                        </div>
                     </div>
+                    
+                    <div class="parking-stats">
+                        <div class="stat-item">
+                            <span class="stat-number" id="total-parking">0</span>
+                            <span class="stat-label">Gesamt</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number" id="free-parking">0</span>
+                            <span class="stat-label">Kostenlos</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number" id="available-parking">0</span>
+                            <span class="stat-label">Verfügbar</span>
+                        </div>
+                    </div>
+                    
                     <div class="parking-list" id="parking-list">
                         <!-- Parkplätze werden hier dynamisch eingefügt -->
                     </div>

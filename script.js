@@ -28,6 +28,7 @@ class FreeParkApp {
         this.loadParkingList();
         this.loadReportedParkingSpots();
         this.checkAuthStatus();
+        this.getUserLocation();
         
         // Marker nach vollständiger Initialisierung hinzufügen
         console.log('Füge Marker hinzu...');
@@ -35,6 +36,28 @@ class FreeParkApp {
         this.addHomeMapMarkers();
         
         console.log('init() abgeschlossen');
+    }
+
+    getUserLocation() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    this.userLocation = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    };
+                    console.log('Benutzerstandort erkannt:', this.userLocation);
+                    
+                    // Liste aktualisieren wenn auf Liste-Seite
+                    if (document.getElementById('list').classList.contains('active')) {
+                        this.updateParkingList();
+                    }
+                },
+                (error) => {
+                    console.log('Standort nicht verfügbar:', error.message);
+                }
+            );
+        }
     }
 
     setupNavigation() {
@@ -423,27 +446,197 @@ class FreeParkApp {
     }
 
     loadParkingList() {
+        // Parkplätze mit Geo-Fencing laden und sortieren
+        this.loadReportedParkingSpots().then(() => {
+            this.updateParkingList();
+            this.setupListFilters();
+        });
+    }
+
+    updateParkingList() {
         const parkingList = document.getElementById('parking-list');
         if (!parkingList) return;
 
-        const listHTML = this.parkingData.map(item => `
-            <div class="parking-item">
-                <h3>${item.name}</h3>
-                <p>${item.address}</p>
-                <div class="parking-meta">
-                    <span>${this.getTypeLabel(item.type)}</span>
-                    <span>${item.available ? 'Verfügbar' : 'Besetzt'}</span>
-                    <span>${this.getPriceLabel(item.type)}</span>
+        // Aktuelle Parkplätze mit Entfernungen berechnen
+        const parkingSpotsWithDistance = this.calculateDistances(this.currentParkingSpots || []);
+        
+        // Sortierung anwenden
+        const sortedSpots = this.sortParkingSpots(parkingSpotsWithDistance);
+        
+        // Statistiken aktualisieren
+        this.updateParkingStats(sortedSpots);
+        
+        // Liste rendern
+        const listHTML = sortedSpots.map(spot => this.createParkingListItem(spot)).join('');
+        parkingList.innerHTML = listHTML;
+    }
+
+    calculateDistances(parkingSpots) {
+        if (!this.userLocation) return parkingSpots;
+
+        return parkingSpots.map(spot => {
+            const lat = spot.lat || spot.latitude;
+            const lng = spot.lng || spot.longitude;
+            
+            if (lat && lng) {
+                const distance = this.calculateDistance(
+                    this.userLocation.lat, 
+                    this.userLocation.lng, 
+                    lat, 
+                    lng
+                );
+                return { ...spot, distance };
+            }
+            return spot;
+        });
+    }
+
+    calculateDistance(lat1, lng1, lat2, lng2) {
+        const R = 6371; // Erdradius in km
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLng = (lng2 - lng1) * Math.PI / 180;
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                  Math.sin(dLng/2) * Math.sin(dLng/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return R * c;
+    }
+
+    sortParkingSpots(parkingSpots) {
+        const sortType = document.querySelector('.sort-btn.active')?.id || 'sort-distance';
+        
+        switch (sortType) {
+            case 'sort-distance':
+                return parkingSpots.sort((a, b) => (a.distance || 999) - (b.distance || 999));
+            case 'sort-type':
+                return parkingSpots.sort((a, b) => a.type.localeCompare(b.type));
+            case 'sort-date':
+                return parkingSpots.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            default:
+                return parkingSpots;
+        }
+    }
+
+    updateParkingStats(parkingSpots) {
+        const total = parkingSpots.length;
+        const free = parkingSpots.filter(spot => spot.type === 'free').length;
+        const available = parkingSpots.filter(spot => spot.available).length;
+
+        document.getElementById('total-parking').textContent = total;
+        document.getElementById('free-parking').textContent = free;
+        document.getElementById('available-parking').textContent = available;
+    }
+
+    createParkingListItem(spot) {
+        const lat = spot.lat || spot.latitude;
+        const lng = spot.lng || spot.longitude;
+        const distance = spot.distance ? `${spot.distance.toFixed(1)} km` : 'Unbekannt';
+        const typeLabel = this.getTypeLabel(spot.type);
+        const statusClass = spot.available ? 'available' : 'occupied';
+        const statusText = spot.available ? 'Verfügbar' : 'Besetzt';
+        
+        return `
+            <div class="parking-item ${statusClass}" data-id="${spot.id}">
+                <div class="parking-item-header">
+                    <h3>${spot.name || spot.address}</h3>
+                    <div class="parking-item-meta">
+                        <span class="distance">📍 ${distance}</span>
+                        <span class="type">🚦 ${typeLabel}</span>
+                        <span class="status ${statusClass}">${statusText}</span>
+                    </div>
+                </div>
+                <div class="parking-item-details">
+                    <p class="address">📍 ${spot.address}</p>
+                    <p class="city">🏙️ ${spot.city || 'Unbekannt'}</p>
+                    <p class="created">📅 Erstellt: ${new Date(spot.created_at).toLocaleDateString('de-DE')}</p>
+                </div>
+                <div class="parking-item-actions">
+                    <button onclick="app.showDirections(${lat}, ${lng})" class="action-btn route-btn">
+                        🗺️ Route
+                    </button>
+                    <button onclick="app.showOnMap(${lat}, ${lng})" class="action-btn map-btn">
+                        📍 Auf Karte
+                    </button>
+                    ${this.currentUser ? `
+                        <button onclick="app.addToFavorites(${spot.id})" class="action-btn favorite-btn">
+                            ⭐ Favorit
+                        </button>
+                    ` : ''}
                 </div>
             </div>
-        `).join('');
+        `;
+    }
 
-        parkingList.innerHTML = listHTML;
+    setupListFilters() {
+        // Sortierung
+        document.querySelectorAll('.sort-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                this.updateParkingList();
+            });
+        });
+
+        // Filter
+        document.getElementById('city-filter')?.addEventListener('change', () => this.filterParkingSpots());
+        document.getElementById('type-filter')?.addEventListener('change', () => this.filterParkingSpots());
+        document.getElementById('search-parking')?.addEventListener('input', () => this.filterParkingSpots());
+    }
+
+    filterParkingSpots() {
+        const cityFilter = document.getElementById('city-filter')?.value || '';
+        const typeFilter = document.getElementById('type-filter')?.value || '';
+        const searchFilter = document.getElementById('search-parking')?.value || '';
+
+        let filteredSpots = this.currentParkingSpots || [];
+
+        if (cityFilter) {
+            filteredSpots = filteredSpots.filter(spot => spot.city === cityFilter);
+        }
+
+        if (typeFilter) {
+            filteredSpots = filteredSpots.filter(spot => spot.type === typeFilter);
+        }
+
+        if (searchFilter) {
+            const searchLower = searchFilter.toLowerCase();
+            filteredSpots = filteredSpots.filter(spot => 
+                spot.address.toLowerCase().includes(searchLower) ||
+                spot.city.toLowerCase().includes(searchLower) ||
+                (spot.name && spot.name.toLowerCase().includes(searchLower))
+            );
+        }
+
+        this.currentParkingSpots = filteredSpots;
+        this.updateParkingList();
+    }
+
+    showOnMap(lat, lng) {
+        // Zur Karte wechseln und Parkplatz markieren
+        this.showSection('home');
+        setTimeout(() => {
+            if (this.homeMap) {
+                this.homeMap.setView([lat, lng], 16);
+                // Temporären Marker hinzufügen
+                const tempMarker = L.circleMarker([lat, lng], {
+                    radius: 15,
+                    fillColor: '#ff0000',
+                    color: '#ffffff',
+                    weight: 3,
+                    opacity: 1,
+                    fillOpacity: 0.8
+                }).addTo(this.homeMap);
+                
+                setTimeout(() => {
+                    this.homeMap.removeLayer(tempMarker);
+                }, 3000);
+            }
+        }, 100);
     }
 
         loadReportedParkingSpots() {
         // Temporärer Workaround: Verwende parking-Route statt reported-parking
-        fetch(`${this.apiBaseUrl}/parking`)
+        return fetch(`${this.apiBaseUrl}/parking`)
             .then(response => {
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}`);
@@ -455,7 +648,14 @@ class FreeParkApp {
                 // Backend gibt {parkingSpots: [...]} zurück
                 const parkingSpots = data.parkingSpots || data || [];
                 console.log('Verarbeitete Parkplätze:', parkingSpots);
+                
+                // Daten für Liste speichern
+                this.currentParkingSpots = parkingSpots;
+                
+                // Auf Karte anzeigen
                 this.displayReportedParkingSpots(parkingSpots);
+                
+                return parkingSpots;
             })
             .catch(error => {
                 console.error('Fehler beim Laden der Parkplätze:', error);
@@ -466,7 +666,9 @@ class FreeParkApp {
                 }
                 
                 // Keine lokale Speicherung - nur Backend
+                this.currentParkingSpots = [];
                 this.displayReportedParkingSpots([]);
+                return [];
             });
     }
 
@@ -489,32 +691,38 @@ class FreeParkApp {
                 return;
             }
             
-            // Marker für Hauptkarte
+            // Größere, auffälligere Marker für bessere Sichtbarkeit
             const marker = L.circleMarker([lat, lng], {
-                radius: 8,
+                radius: 12,
                 fillColor: markerColor,
                 color: '#ffffff',
-                weight: 2,
+                weight: 3,
                 opacity: 1,
-                fillOpacity: 0.8
+                fillOpacity: 0.9
             }).addTo(this.map);
 
             const popupContent = this.createParkingPopup(spot);
-            marker.bindPopup(popupContent);
+            marker.bindPopup(popupContent, {
+                maxWidth: 300,
+                className: 'parking-popup'
+            });
             this.markers.push(marker);
 
-            // Marker für Home-Karte
+            // Marker für Home-Karte (etwas kleiner)
             const homeMarker = L.circleMarker([lat, lng], {
-                radius: 6,
+                radius: 10,
                 fillColor: markerColor,
                 color: '#ffffff',
                 weight: 2,
                 opacity: 1,
-                fillOpacity: 0.8
+                fillOpacity: 0.9
             }).addTo(this.homeMap);
 
             const homePopupContent = this.createParkingPopup(spot, true);
-            homeMarker.bindPopup(homePopupContent);
+            homeMarker.bindPopup(homePopupContent, {
+                maxWidth: 250,
+                className: 'parking-popup'
+            });
             this.homeMarkers.push(homeMarker);
         });
     }
