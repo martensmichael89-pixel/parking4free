@@ -1371,7 +1371,7 @@ class FreeParkApp {
             return;
         }
 
-        // An Backend senden (temporärer Workaround)
+        // An Backend senden
         fetch(`${this.apiBaseUrl}/parking`, {
             method: 'POST',
             headers: {
@@ -1408,6 +1408,8 @@ class FreeParkApp {
         })
         .catch(error => {
             console.error('Fehler beim Melden des Parkplatzes:', error);
+            console.error('API Base URL:', this.apiBaseUrl);
+            console.error('Token:', localStorage.getItem('token') ? 'Vorhanden' : 'Fehlt');
             
             // Detailliertere Fehlerbehandlung
             if (error.message.includes('HTTP 404')) {
@@ -1416,8 +1418,10 @@ class FreeParkApp {
                 this.showNotification('Nicht autorisiert - Bitte erneut einloggen', 'error');
             } else if (error.message.includes('HTTP 500')) {
                 this.showNotification('Server-Fehler - Bitte später versuchen', 'error');
-            } else {
+            } else if (error.message.includes('Failed to fetch')) {
                 this.showNotification('Verbindungsfehler - Bitte Internetverbindung prüfen', 'error');
+            } else {
+                this.showNotification(`Fehler: ${error.message}`, 'error');
             }
         });
     }
@@ -1517,7 +1521,7 @@ class FreeParkApp {
     // Event Listeners für Mitgliederbereich
     setupMemberEventListeners() {
         // Parkplatz melden Form
-        const reportForm = document.getElementById('report-form');
+                    const reportForm = document.getElementById('report-parking-form');
         if (reportForm) {
             reportForm.addEventListener('submit', (e) => {
                 e.preventDefault();
@@ -1646,7 +1650,7 @@ class FreeParkApp {
         this.addReportedSpotToMap(report);
         
         // Form zurücksetzen
-        document.getElementById('report-form').reset();
+                    document.getElementById('report-parking-form').reset();
         document.getElementById('photo-preview').innerHTML = `
             <div class="upload-placeholder">
                 <span class="upload-icon">📸</span>
