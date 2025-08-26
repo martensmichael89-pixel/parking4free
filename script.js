@@ -2,6 +2,7 @@
 
 class FreeParkApp {
     constructor() {
+        console.log('Parking4Free App wird initialisiert...');
         this.map = null;
         this.homeMap = null;
         this.markers = [];
@@ -10,11 +11,13 @@ class FreeParkApp {
         this.parkingData = this.generateSampleData();
         this.currentUser = null;
         this.apiBaseUrl = window.Parking4FreeConfig?.apiBaseUrl || 'http://localhost:3000/api';
+        console.log('API Base URL:', this.apiBaseUrl);
         
         this.init();
     }
 
     init() {
+        console.log('init() aufgerufen');
         this.setupNavigation();
         this.setupMobileMenu();
         this.setupMap();
@@ -25,6 +28,7 @@ class FreeParkApp {
         this.loadParkingList();
         this.loadReportedParkingSpots();
         this.checkAuthStatus();
+        console.log('init() abgeschlossen');
     }
 
     setupNavigation() {
