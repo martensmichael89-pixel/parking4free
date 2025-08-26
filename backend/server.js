@@ -52,12 +52,40 @@ app.use((req, res, next) => {
     }
 });
 
-// Rate Limiting
+// Rate Limiting - weniger restriktiv für Entwicklung
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100 // limit each IP to 100 requests per windowMs
+    max: 1000, // limit each IP to 1000 requests per windowMs (erhöht)
+    message: {
+        error: 'Zu viele Anfragen. Bitte versuchen Sie es später erneut.',
+        retryAfter: Math.ceil(15 * 60 / 1000) // 15 minutes in seconds
+    },
+    standardHeaders: true,
+    legacyHeaders: false,
+    skipSuccessfulRequests: true, // Erfolgreiche Anfragen nicht zählen
+    skipFailedRequests: false
 });
-app.use('/api/', limiter);
+
+// Weniger restriktives Rate-Limiting für Auth-Routen
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 50, // 50 Login-Versuche pro 15 Minuten
+    message: {
+        error: 'Zu viele Login-Versuche. Bitte versuchen Sie es später erneut.',
+        retryAfter: Math.ceil(15 * 60 / 1000)
+    },
+    standardHeaders: true,
+    legacyHeaders: false
+});
+
+// Rate-Limiting nur in Produktion aktivieren
+if (process.env.NODE_ENV === 'production') {
+    app.use('/api/', limiter);
+    app.use('/api/auth', authLimiter);
+    console.log('Rate-Limiting aktiviert (Produktion)');
+} else {
+    console.log('Rate-Limiting deaktiviert (Entwicklung)');
+}
 
 // Body Parser
 app.use(express.json({ limit: '10mb' }));
