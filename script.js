@@ -452,8 +452,9 @@ class FreeParkApp {
             })
             .then(data => {
                 console.log('Parkplätze geladen:', data);
-                // Sicherstellen, dass data ein Array ist
-                const parkingSpots = Array.isArray(data) ? data : [];
+                // Backend gibt {parkingSpots: [...]} zurück
+                const parkingSpots = data.parkingSpots || data || [];
+                console.log('Verarbeitete Parkplätze:', parkingSpots);
                 this.displayReportedParkingSpots(parkingSpots);
             })
             .catch(error => {
@@ -479,8 +480,17 @@ class FreeParkApp {
         parkingSpots.forEach(spot => {
             const markerColor = this.getMarkerColor(spot.type, true);
             
+            // Backend verwendet 'lat' und 'lng' statt 'latitude' und 'longitude'
+            const lat = spot.lat || spot.latitude;
+            const lng = spot.lng || spot.longitude;
+            
+            if (!lat || !lng) {
+                console.warn('Parkplatz ohne Koordinaten:', spot);
+                return;
+            }
+            
             // Marker für Hauptkarte
-            const marker = L.circleMarker([spot.latitude, spot.longitude], {
+            const marker = L.circleMarker([lat, lng], {
                 radius: 8,
                 fillColor: markerColor,
                 color: '#ffffff',
@@ -494,7 +504,7 @@ class FreeParkApp {
             this.markers.push(marker);
 
             // Marker für Home-Karte
-            const homeMarker = L.circleMarker([spot.latitude, spot.longitude], {
+            const homeMarker = L.circleMarker([lat, lng], {
                 radius: 6,
                 fillColor: markerColor,
                 color: '#ffffff',
@@ -518,20 +528,25 @@ class FreeParkApp {
         const lastConfirmed = spot.last_confirmed ? 
             `<br><strong>Zuletzt bestätigt:</strong> ${new Date(spot.last_confirmed).toLocaleDateString('de-DE')}` : '';
 
+        // Backend verwendet 'lat' und 'lng' statt 'latitude' und 'longitude'
+        const lat = spot.lat || spot.latitude;
+        const lng = spot.lng || spot.longitude;
+        
         let popupContent = `
             <div style="text-align: center; min-width: ${isHomeMap ? '180px' : '250px'};">
                 <h3 style="margin: 0 0 10px 0; color: #00ff00; font-size: ${isHomeMap ? '14px' : '16px'};">
-                    ${spot.address}
+                    ${spot.name || spot.address}
                 </h3>
                 <p style="margin: 5px 0; color: #333; font-size: ${isHomeMap ? '12px' : '14px'};">
                     <strong>Typ:</strong> ${typeLabel}<br>
-                    <strong>Parkplätze:</strong> ${spot.spaces || 'Unbekannt'}<br>
-                    <strong>Gemeldet von:</strong> ${spot.reporter_name || 'Unbekannt'}
+                    <strong>Adresse:</strong> ${spot.address}<br>
+                    <strong>Stadt:</strong> ${spot.city || 'Unbekannt'}<br>
+                    <strong>Status:</strong> ${spot.available ? 'Verfügbar' : 'Besetzt'}
                     ${ratingInfo}
                     ${restrictionsInfo}
                     ${lastConfirmed}
                 </p>
-                <button onclick="app.showDirections(${spot.latitude}, ${spot.longitude})" 
+                <button onclick="app.showDirections(${lat}, ${lng})" 
                         style="background: #00ff00; color: black; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin-top: 10px; font-weight: bold; font-size: ${isHomeMap ? '12px' : '14px'};">
                     Route anzeigen
                 </button>
