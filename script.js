@@ -1109,6 +1109,7 @@ class FreeParkApp {
             console.error('Fehler beim Melden des Parkplatzes:', error);
             this.showNotification('Backend nicht erreichbar - Parkplatz konnte nicht gespeichert werden', 'error');
         });
+    }
 
     generateSampleData() {
         return []; // Keine Beispieldaten mehr - nur gemeldete Parkplätze werden angezeigt
@@ -1343,7 +1344,7 @@ class FreeParkApp {
 }
 
 // CSS für Benachrichtigungen hinzufügen
-const notificationStyles = document.createElement('style');
+var notificationStyles = document.createElement('style');
 notificationStyles.textContent = `
     @keyframes slideIn {
         from { transform: translateX(100%); opacity: 0; }
