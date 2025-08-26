@@ -22,16 +22,9 @@ const PORT = process.env.PORT || 3001;
 //     crossOriginOpenerPolicy: false,
 //     crossOriginResourcePolicy: false
 // }));
-// CORS-Konfiguration
+// CORS-Konfiguration - Erlaubt alle Origins
 const corsOptions = {
-    origin: function (origin, callback) {
-        // Erlaube alle Origins für Entwicklung
-        if (!origin || origin.includes('localhost') || origin.includes('github.io') || origin.includes('netlify.app')) {
-            callback(null, true);
-        } else {
-            callback(new Error('CORS nicht erlaubt'));
-        }
-    },
+    origin: true, // Erlaubt alle Origins
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']

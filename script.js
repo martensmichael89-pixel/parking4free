@@ -1131,7 +1131,7 @@ class FreeParkApp {
 
         // Verwende XMLHttpRequest statt fetch um CSP-Probleme zu umgehen
         const xhr = new XMLHttpRequest();
-        xhr.open('GET', 'https://parking4free-backend.onrender.com/api/auth/me', true);
+        xhr.open('GET', `${this.apiBaseUrl}/auth/me`, true);
         xhr.setRequestHeader('Authorization', `Bearer ${token}`);
         
         xhr.onload = () => {
