@@ -52,22 +52,43 @@ const initDatabase = () => {
                 )
             `);
 
-            // Reported Parking Spots Tabelle
+            // Tabelle für gemeldete Parkplätze
             db.run(`
                 CREATE TABLE IF NOT EXISTS reported_parking_spots (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     user_id INTEGER NOT NULL,
-                    name TEXT NOT NULL,
+                    address TEXT NOT NULL,
                     description TEXT,
+                    spaces TEXT,
+                    type TEXT NOT NULL,
+                    disc_duration TEXT,
+                    restriction_start TEXT,
+                    restriction_end TEXT,
+                    restriction_days TEXT,
                     latitude REAL NOT NULL,
                     longitude REAL NOT NULL,
-                    type TEXT NOT NULL,
-                    restrictions TEXT,
-                    photo TEXT,
                     status TEXT DEFAULT 'pending',
+                    rating_count INTEGER DEFAULT 0,
+                    rating_score REAL DEFAULT 0,
+                    last_confirmed DATETIME,
                     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY (user_id) REFERENCES users (id)
+                )
+            `);
+
+            // Tabelle für Parkplatz-Bewertungen
+            db.run(`
+                CREATE TABLE IF NOT EXISTS parking_ratings (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    parking_spot_id INTEGER NOT NULL,
+                    user_id INTEGER NOT NULL,
+                    rating_type TEXT NOT NULL,
+                    comment TEXT,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (parking_spot_id) REFERENCES reported_parking_spots (id),
+                    FOREIGN KEY (user_id) REFERENCES users (id),
+                    UNIQUE(parking_spot_id, user_id)
                 )
             `);
 

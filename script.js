@@ -215,20 +215,31 @@ class FreeParkApp {
     getMarkerColor(type, available) {
         if (!available) return '#ff4444';
         switch (type) {
-            case 'free': return '#00ff00';
-            case 'paid': return '#ffaa00';
-            case 'time-limited': return '#00aaff';
+            case 'always-free': return '#00ff00';
+            case 'disc-required': return '#00aaff';
+            case 'time-limited': return '#ffaa00';
+            case 'lifted-restriction': return '#ff8800';
+            case 'disabled-temporary': return '#aa00ff';
+            case 'free': return '#00ff00'; // Fallback für alte Daten
+            case 'paid': return '#ffaa00'; // Fallback für alte Daten
             default: return '#888888';
         }
     }
 
     getTypeLabel(type) {
-        switch (type) {
-            case 'free': return 'Kostenlos';
-            case 'paid': return 'Kostenpflichtig';
-            case 'time-limited': return 'Zeitlich begrenzt';
-            default: return 'Unbekannt';
-        }
+        const labels = {
+            'always-free': '🅿️ Generell kostenlos',
+            'disc-required': '🕐 Kostenlos mit Parkscheibe',
+            'time-limited': '⏰ Zeitlich begrenzt kostenlos',
+            'lifted-restriction': '⚠️ Aufgehobenes Halteverbot',
+            'disabled-temporary': '♿ Temporärer Behindertenplatz',
+            'free': '🅿️ Dauerhaft kostenlos', // Fallback für alte Daten
+            'paid': '💰 Kostenpflichtig', // Fallback für alte Daten
+            'parking-disc': '🕐 Parkscheibe erforderlich', // Fallback für alte Daten
+            'restricted': '⚠️ Eingeschränktes Halteverbot', // Fallback für alte Daten
+            'absolute': '🚫 Absolutes Halteverbot' // Fallback für alte Daten
+        };
+        return labels[type] || 'Unbekannt';
     }
 
     getPriceLabel(type) {
@@ -411,16 +422,11 @@ class FreeParkApp {
 
     displayReportedParkingSpots(parkingSpots) {
         // Bestehende Marker entfernen
-        this.markers.forEach(marker => {
-            this.map.removeLayer(marker);
-        });
-        this.homeMarkers.forEach(marker => {
-            this.homeMap.removeLayer(marker);
-        });
+        this.markers.forEach(marker => this.map.removeLayer(marker));
+        this.homeMarkers.forEach(marker => this.homeMap.removeLayer(marker));
         this.markers = [];
         this.homeMarkers = [];
 
-        // Neue Marker hinzufügen
         parkingSpots.forEach(spot => {
             const markerColor = this.getMarkerColor(spot.type, true);
             
@@ -434,23 +440,7 @@ class FreeParkApp {
                 fillOpacity: 0.8
             }).addTo(this.map);
 
-            const popupContent = `
-                <div style="text-align: center; min-width: 200px;">
-                    <h3 style="margin: 0 0 10px 0; color: #00ff00;">${spot.name}</h3>
-                    <p style="margin: 5px 0; color: #333;">
-                        <strong>Typ:</strong> ${this.getTypeLabel(spot.type)}<br>
-                        <strong>Status:</strong> Verfügbar<br>
-                        <strong>Gemeldet von:</strong> ${spot.reporter_name || 'Unbekannt'}<br>
-                        ${spot.description ? `<strong>Beschreibung:</strong> ${spot.description}<br>` : ''}
-                        ${spot.restrictions ? `<strong>Einschränkungen:</strong> ${spot.restrictions}<br>` : ''}
-                    </p>
-                    <button onclick="app.showDirections(${spot.latitude}, ${spot.longitude})" 
-                            style="background: #00ff00; color: black; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin-top: 10px; font-weight: bold;">
-                        Route anzeigen
-                    </button>
-                </div>
-            `;
-
+            const popupContent = this.createParkingPopup(spot);
             marker.bindPopup(popupContent);
             this.markers.push(marker);
 
@@ -464,19 +454,121 @@ class FreeParkApp {
                 fillOpacity: 0.8
             }).addTo(this.homeMap);
 
-            const homePopupContent = `
-                <div style="text-align: center; min-width: 180px;">
-                    <h3 style="margin: 0 0 8px 0; color: #00ff00; font-size: 14px;">${spot.name}</h3>
-                    <p style="margin: 3px 0; color: #333; font-size: 12px;">
-                        <strong>Typ:</strong> ${this.getTypeLabel(spot.type)}<br>
-                        <strong>Status:</strong> Verfügbar<br>
-                        <strong>Gemeldet von:</strong> ${spot.reporter_name || 'Unbekannt'}
-                    </p>
-                </div>
-            `;
-
+            const homePopupContent = this.createParkingPopup(spot, true);
             homeMarker.bindPopup(homePopupContent);
             this.homeMarkers.push(homeMarker);
+        });
+    }
+
+    createParkingPopup(spot, isHomeMap = false) {
+        const typeLabel = this.getTypeLabel(spot.type);
+        const ratingInfo = spot.rating_count > 0 ? 
+            `<br><strong>Bewertung:</strong> ${Math.round(spot.rating_score * 100)}% (${spot.rating_count} Bewertungen)` : '';
+        
+        const restrictionsInfo = this.getRestrictionsInfo(spot);
+        const lastConfirmed = spot.last_confirmed ? 
+            `<br><strong>Zuletzt bestätigt:</strong> ${new Date(spot.last_confirmed).toLocaleDateString('de-DE')}` : '';
+
+        let popupContent = `
+            <div style="text-align: center; min-width: ${isHomeMap ? '180px' : '250px'};">
+                <h3 style="margin: 0 0 10px 0; color: #00ff00; font-size: ${isHomeMap ? '14px' : '16px'};">
+                    ${spot.address}
+                </h3>
+                <p style="margin: 5px 0; color: #333; font-size: ${isHomeMap ? '12px' : '14px'};">
+                    <strong>Typ:</strong> ${typeLabel}<br>
+                    <strong>Parkplätze:</strong> ${spot.spaces || 'Unbekannt'}<br>
+                    <strong>Gemeldet von:</strong> ${spot.reporter_name || 'Unbekannt'}
+                    ${ratingInfo}
+                    ${restrictionsInfo}
+                    ${lastConfirmed}
+                </p>
+                <button onclick="app.showDirections(${spot.latitude}, ${spot.longitude})" 
+                        style="background: #00ff00; color: black; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin-top: 10px; font-weight: bold; font-size: ${isHomeMap ? '12px' : '14px'};">
+                    Route anzeigen
+                </button>
+        `;
+
+        // Bewertungsbuttons nur für eingeloggte Benutzer
+        if (this.currentUser && !isHomeMap) {
+            popupContent += `
+                <div class="parking-rating" style="margin-top: 15px;">
+                    <p style="margin: 0 0 10px 0; font-weight: bold;">Parkplatz bewerten:</p>
+                    <div class="rating-buttons">
+                        <button onclick="app.rateParkingSpot(${spot.id}, 'confirm')" class="rating-btn confirm">
+                            ✅ Bestätigen
+                        </button>
+                        <button onclick="app.rateParkingSpot(${spot.id}, 'unavailable')" class="rating-btn unavailable">
+                            ❌ Nicht verfügbar
+                        </button>
+                        <button onclick="app.rateParkingSpot(${spot.id}, 'report')" class="rating-btn report">
+                            ⚠️ Melden
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        popupContent += '</div>';
+        return popupContent;
+    }
+
+    getRestrictionsInfo(spot) {
+        let info = '';
+        
+        if (spot.type === 'disc-required' && spot.disc_duration) {
+            info += `<br><strong>Parkscheibe:</strong> ${spot.disc_duration} Stunde${spot.disc_duration !== '1' ? 'n' : ''}`;
+        }
+        
+        if (spot.restriction_start && spot.restriction_end) {
+            info += `<br><strong>Zeit:</strong> ${spot.restriction_start} - ${spot.restriction_end}`;
+        }
+        
+        if (spot.restriction_days) {
+            const days = spot.restriction_days.split(',').map(day => {
+                const dayMap = {
+                    'monday': 'Mo', 'tuesday': 'Di', 'wednesday': 'Mi', 'thursday': 'Do',
+                    'friday': 'Fr', 'saturday': 'Sa', 'sunday': 'So'
+                };
+                return dayMap[day] || day;
+            }).join(', ');
+            info += `<br><strong>Tage:</strong> ${days}`;
+        }
+        
+        return info;
+    }
+
+    rateParkingSpot(parkingId, ratingType) {
+        if (!this.currentUser) {
+            this.showNotification('Bitte zuerst einloggen', 'error');
+            return;
+        }
+
+        const comment = prompt('Optional: Kommentar zur Bewertung:') || '';
+
+        fetch(`${this.apiBaseUrl}/reported-parking/${parkingId}/rate`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify({
+                rating_type: ratingType,
+                comment: comment
+            })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            this.showNotification('Bewertung erfolgreich gespeichert', 'success');
+            this.loadReportedParkingSpots(); // Karte aktualisieren
+        })
+        .catch(error => {
+            console.error('Fehler beim Bewerten:', error);
+            this.showNotification('Fehler beim Speichern der Bewertung', 'error');
         });
     }
 
@@ -659,98 +751,77 @@ class FreeParkApp {
         }, 3000);
     }
 
-        setupAuth() {
-        console.log('setupAuth aufgerufen');
-        // Login Modal
-        const loginBtn = document.getElementById('login-btn');
-        const loginModal = document.getElementById('login-modal');
-        const closeLogin = document.getElementById('close-login');
-        const loginForm = document.getElementById('login-form');
-        
-        console.log('Login Button:', loginBtn);
-        console.log('Login Modal:', loginModal);
-        console.log('Login Form:', loginForm);
-        
-        // Register Modal
-        const registerBtn = document.getElementById('register-btn');
-        const registerModal = document.getElementById('register-modal');
-        const closeRegister = document.getElementById('close-register');
-        const registerForm = document.getElementById('register-form');
+    setupAuth() {
+        // Login/Register Buttons
+        this.loginBtn = document.getElementById('login-btn');
+        this.registerBtn = document.getElementById('register-btn');
+        this.logoutBtn = document.getElementById('logout-btn');
+        this.memberBtn = document.getElementById('member-btn');
+        this.reportParkingBtn = document.getElementById('report-parking-btn');
+        this.mapClickHint = document.getElementById('map-click-hint');
 
-        // Parkplatz Melden Modal
-        const reportParkingBtn = document.getElementById('report-parking-btn');
-        const reportParkingModal = document.getElementById('report-parking-modal');
-        const closeReportParking = document.getElementById('close-report-parking');
-        const reportParkingForm = document.getElementById('report-parking-form');
+        // Modals
+        this.loginModal = document.getElementById('login-modal');
+        this.registerModal = document.getElementById('register-modal');
+        this.reportParkingModal = document.getElementById('report-parking-modal');
 
-        // Logout
-        const logoutBtn = document.getElementById('logout-btn');
+        // Close buttons
+        this.closeLogin = document.getElementById('close-login');
+        this.closeRegister = document.getElementById('close-register');
+        this.closeReportParking = document.getElementById('close-report-parking');
+
+        // Forms
+        this.loginForm = document.getElementById('login-form');
+        this.registerForm = document.getElementById('register-form');
+        this.reportParkingForm = document.getElementById('report-parking-form');
+
+        // Location map
+        this.locationMap = null;
+        this.locationMarker = null;
 
         // Event Listeners
-        if (loginBtn) {
-            console.log('Login Button Event Listener hinzugefügt');
-            loginBtn.addEventListener('click', () => {
-                console.log('Login Button geklickt');
-                this.showModal(loginModal);
-            });
-        } else {
-            console.log('Login Button nicht gefunden!');
-        }
-        registerBtn.addEventListener('click', () => this.showModal(registerModal));
-        closeLogin.addEventListener('click', () => this.hideModal(loginModal));
-        closeRegister.addEventListener('click', () => this.hideModal(registerModal));
-        logoutBtn.addEventListener('click', () => this.logout());
+        this.loginBtn.addEventListener('click', () => this.showModal(this.loginModal));
+        this.registerBtn.addEventListener('click', () => this.showModal(this.registerModal));
+        this.reportParkingBtn.addEventListener('click', () => this.openReportParkingModal());
+        
+        this.logoutBtn.addEventListener('click', () => this.handleLogout());
+        this.memberBtn.addEventListener('click', () => this.showMemberArea());
 
-        // Parkplatz Melden Event Listeners
-        if (reportParkingBtn) {
-            reportParkingBtn.addEventListener('click', () => this.showModal(reportParkingModal));
-        }
-        if (closeReportParking) {
-            closeReportParking.addEventListener('click', () => this.hideModal(reportParkingModal));
-        }
+        this.closeLogin.addEventListener('click', () => this.hideModal(this.loginModal));
+        this.closeRegister.addEventListener('click', () => this.hideModal(this.registerModal));
+        this.closeReportParking.addEventListener('click', () => this.hideModal(this.reportParkingModal));
 
-        // Close modal when clicking outside
-        window.addEventListener('click', (e) => {
-            if (e.target === loginModal) this.hideModal(loginModal);
-            if (e.target === registerModal) this.hideModal(registerModal);
-            if (e.target === reportParkingModal) this.hideModal(reportParkingModal);
+        this.loginForm.addEventListener('submit', (e) => this.handleLogin(e));
+        this.registerForm.addEventListener('submit', (e) => this.handleRegister(e));
+        this.reportParkingForm.addEventListener('submit', (e) => this.handleParkingReport(e));
+
+        // Neue Event-Listener für das erweiterte Formular
+        this.setupReportFormListeners();
+    }
+
+    setupReportFormListeners() {
+        // Parkplatz-Typ ändert sich
+        const parkingTypeSelect = document.getElementById('parking-type');
+        const timeRestrictionsGroup = document.getElementById('time-restrictions-group');
+        const discDetailsGroup = document.getElementById('disc-details-group');
+
+        parkingTypeSelect.addEventListener('change', (e) => {
+            const selectedType = e.target.value;
+            
+            // Zeitliche Einschränkungen anzeigen/verstecken
+            if (selectedType === 'time-limited' || selectedType === 'lifted-restriction' || selectedType === 'disabled-temporary') {
+                timeRestrictionsGroup.style.display = 'block';
+            } else {
+                timeRestrictionsGroup.style.display = 'none';
+            }
+
+            // Parkscheibe-Details anzeigen/verstecken
+            if (selectedType === 'disc-required') {
+                discDetailsGroup.style.display = 'block';
+            } else {
+                discDetailsGroup.style.display = 'none';
+            }
         });
-
-        // Form submissions
-        if (loginForm) {
-            console.log('Login Form Event Listener hinzugefügt');
-            loginForm.addEventListener('submit', (e) => {
-                console.log('Login Form submitted');
-                e.preventDefault();
-                this.handleLogin();
-            });
-        } else {
-            console.log('Login Form nicht gefunden!');
-        }
-
-        registerForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.handleRegister();
-        });
-
-        // Parkplatz Melden Form
-        if (reportParkingForm) {
-            reportParkingForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                this.handleParkingReport();
-            });
-        }
-
-        // Standort-Buttons
-        const useCurrentLocationBtn = document.getElementById('use-current-location');
-        const selectOnMapBtn = document.getElementById('select-on-map');
-
-        if (useCurrentLocationBtn) {
-            useCurrentLocationBtn.addEventListener('click', () => this.useCurrentLocation());
-        }
-        if (selectOnMapBtn) {
-            selectOnMapBtn.addEventListener('click', () => this.selectLocationOnMap());
-        }
     }
 
     showModal(modal) {
@@ -1053,41 +1124,54 @@ class FreeParkApp {
         }
     }
 
-    handleParkingReport() {
+    handleParkingReport(e) {
+        e.preventDefault();
+        
         if (!this.currentUser) {
-            this.showNotification('Bitte melden Sie sich an, um einen Parkplatz zu melden', 'error');
+            this.showNotification('Bitte zuerst einloggen', 'error');
             return;
         }
 
-        if (!this.selectedCoordinates) {
-            this.showNotification('Bitte wählen Sie einen Standort aus', 'error');
+        const formData = new FormData(e.target);
+        const coordsDisplay = document.getElementById('selected-coordinates');
+        
+        if (coordsDisplay.textContent === 'Noch nicht markiert') {
+            this.showNotification('Bitte markieren Sie den Standort auf der Karte', 'error');
             return;
         }
 
-        const formData = {
-            name: document.getElementById('parking-name').value,
-            description: document.getElementById('parking-description').value,
-            type: document.getElementById('parking-type').value,
-            restrictions: document.getElementById('parking-restrictions').value,
-            latitude: this.selectedCoordinates.lat,
-            longitude: this.selectedCoordinates.lng,
-            photo: null // Foto wird später implementiert
+        const coords = coordsDisplay.textContent.split(', ');
+        const latitude = parseFloat(coords[0]);
+        const longitude = parseFloat(coords[1]);
+
+        // Alle Formular-Daten sammeln
+        const parkingData = {
+            address: formData.get('address'),
+            description: formData.get('description'),
+            spaces: formData.get('spaces'),
+            type: formData.get('type'),
+            disc_duration: formData.get('discDuration'),
+            restriction_start: formData.get('restrictionStart'),
+            restriction_end: formData.get('restrictionEnd'),
+            restriction_days: this.getSelectedDays(),
+            latitude: latitude,
+            longitude: longitude
         };
 
         // Validierung
-        if (!formData.name || !formData.type) {
+        if (!parkingData.address || !parkingData.type) {
             this.showNotification('Bitte füllen Sie alle Pflichtfelder aus', 'error');
             return;
         }
 
-        // Parkplatz an Backend senden
+        // An Backend senden
         fetch(`${this.apiBaseUrl}/reported-parking`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${localStorage.getItem('token')}`
             },
-            body: JSON.stringify(formData)
+            body: JSON.stringify(parkingData)
         })
         .then(response => {
             if (!response.ok) {
@@ -1096,19 +1180,26 @@ class FreeParkApp {
             return response.json();
         })
         .then(data => {
-            if (data.message) {
-                this.showNotification(data.message, 'success');
-                this.hideModal(document.getElementById('report-parking-modal'));
-                this.loadReportedParkingSpots(); // Karte aktualisieren
-                this.loadUserStats(); // Statistiken aktualisieren
-            } else {
-                this.showNotification('Fehler beim Melden des Parkplatzes', 'error');
-            }
+            this.showNotification(data.message, 'success');
+            this.hideModal(this.reportParkingModal);
+            this.loadReportedParkingSpots();
+            this.loadUserStats();
+            
+            // Formular zurücksetzen
+            e.target.reset();
+            document.getElementById('selected-coordinates').textContent = 'Noch nicht markiert';
+            document.getElementById('time-restrictions-group').style.display = 'none';
+            document.getElementById('disc-details-group').style.display = 'none';
         })
         .catch(error => {
             console.error('Fehler beim Melden des Parkplatzes:', error);
             this.showNotification('Backend nicht erreichbar - Parkplatz konnte nicht gespeichert werden', 'error');
         });
+    }
+
+    getSelectedDays() {
+        const checkboxes = document.querySelectorAll('input[name="days"]:checked');
+        return Array.from(checkboxes).map(cb => cb.value).join(',');
     }
 
     generateSampleData() {
@@ -1340,6 +1431,99 @@ class FreeParkApp {
         `;
         document.getElementById('selected-coordinates').textContent = 'Noch nicht markiert';
         document.getElementById('time-restrictions-group').style.display = 'none';
+    }
+
+    openReportParkingModal() {
+        this.showModal(this.reportParkingModal);
+        
+        // GPS-Standort ermitteln
+        this.getCurrentLocation();
+        
+        // Karte initialisieren
+        this.initLocationMap();
+    }
+
+    getCurrentLocation() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const { latitude, longitude } = position.coords;
+                    this.setSelectedCoordinates(latitude, longitude);
+                    this.reverseGeocode(latitude, longitude);
+                },
+                (error) => {
+                    console.error('GPS-Fehler:', error);
+                    this.showNotification('GPS-Standort konnte nicht ermittelt werden', 'warning');
+                }
+            );
+        } else {
+            this.showNotification('GPS wird von diesem Browser nicht unterstützt', 'warning');
+        }
+    }
+
+    reverseGeocode(lat, lng) {
+        // Nominatim OpenStreetMap API für Reverse Geocoding
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.display_name) {
+                    document.getElementById('parking-address').value = data.display_name;
+                }
+            })
+            .catch(error => {
+                console.error('Reverse Geocoding Fehler:', error);
+            });
+    }
+
+    initLocationMap() {
+        const mapContainer = document.getElementById('location-map');
+        
+        if (this.locationMap) {
+            this.locationMap.remove();
+        }
+
+        // Standard-Koordinaten (Deutschland)
+        const defaultLat = 51.1657;
+        const defaultLng = 10.4515;
+
+        this.locationMap = L.map('location-map').setView([defaultLat, defaultLng], 13);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(this.locationMap);
+
+        // Klick-Event für Standort-Markierung
+        this.locationMap.on('click', (e) => {
+            const { lat, lng } = e.latlng;
+            this.setSelectedCoordinates(lat, lng);
+            this.reverseGeocode(lat, lng);
+            this.addLocationMarker(lat, lng);
+        });
+
+        // Wenn bereits Koordinaten vorhanden sind, Marker setzen
+        const coordsDisplay = document.getElementById('selected-coordinates');
+        if (coordsDisplay.textContent !== 'Noch nicht markiert') {
+            const coords = coordsDisplay.textContent.split(', ');
+            const lat = parseFloat(coords[0]);
+            const lng = parseFloat(coords[1]);
+            this.locationMap.setView([lat, lng], 16);
+            this.addLocationMarker(lat, lng);
+        }
+    }
+
+    addLocationMarker(lat, lng) {
+        if (this.locationMarker) {
+            this.locationMap.removeLayer(this.locationMarker);
+        }
+
+        this.locationMarker = L.marker([lat, lng], {
+            icon: L.divIcon({
+                className: 'custom-marker',
+                html: '📍',
+                iconSize: [30, 30],
+                iconAnchor: [15, 30]
+            })
+        }).addTo(this.locationMap);
     }
 }
 

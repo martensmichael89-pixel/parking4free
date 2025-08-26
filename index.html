@@ -401,55 +401,112 @@
         </div>
     </div>
 
-    <!-- Parkplatz Melden Modal -->
+    <!-- Parkplatz melden Modal -->
     <div id="report-parking-modal" class="modal">
         <div class="modal-content">
-            <span class="close" id="close-report-parking">&times;</span>
-            <h2>🚗 Parkplatz melden</h2>
+            <div class="modal-header">
+                <h2>🅿️ Kostenlosen Parkplatz melden</h2>
+                <span class="close" id="close-report-parking">&times;</span>
+            </div>
+            
             <form id="report-parking-form">
+                <!-- Adresse (wird automatisch gefüllt) -->
                 <div class="form-group">
-                    <label for="parking-name">Name des Parkplatzes *</label>
-                    <input type="text" id="parking-name" placeholder="z.B. Kostenloser Parkplatz am Rathaus" required>
+                    <label for="parking-address">📍 Adresse *</label>
+                    <input type="text" id="parking-address" name="address" required readonly>
+                    <small>Wird automatisch über GPS ermittelt</small>
                 </div>
+
+                <!-- Beschreibung -->
                 <div class="form-group">
-                    <label for="parking-description">Beschreibung</label>
-                    <textarea id="parking-description" placeholder="Weitere Details zum Parkplatz..." rows="3"></textarea>
+                    <label for="parking-description">📝 Beschreibung des Parkplatzes</label>
+                    <textarea id="parking-description" name="description" rows="3" 
+                              placeholder="z.B. Parkplatz hinter dem Supermarkt, gut beleuchtet, asphaltiert..."></textarea>
                 </div>
+
+                <!-- Anzahl Parkplätze -->
                 <div class="form-group">
-                    <label for="parking-type">Typ *</label>
-                    <select id="parking-type" required>
+                    <label for="parking-spaces">🚗 Anzahl der Parkplätze</label>
+                    <select id="parking-spaces" name="spaces" required>
                         <option value="">Bitte wählen...</option>
-                        <option value="free">🅿️ Dauerhaft kostenlos</option>
-                        <option value="time-limited">⏰ Zeitlich begrenzt (z.B. 2h kostenlos)</option>
-                        <option value="parking-disc">🕐 Parkscheibe erforderlich</option>
-                        <option value="restricted">⚠️ Eingeschränktes Halteverbot (aufgehoben)</option>
-                        <option value="absolute">🚫 Absolutes Halteverbot (aufgehoben)</option>
+                        <option value="1">1 Parkplatz</option>
+                        <option value="2-5">2-5 Parkplätze</option>
+                        <option value="6-10">6-10 Parkplätze</option>
+                        <option value="11-20">11-20 Parkplätze</option>
+                        <option value="20+">Über 20 Parkplätze</option>
                     </select>
                 </div>
+
+                <!-- Parkplatz-Typ -->
                 <div class="form-group">
-                    <label for="parking-restrictions">Einschränkungen</label>
-                    <textarea id="parking-restrictions" placeholder="Zeitliche Einschränkungen, besondere Bedingungen..." rows="2"></textarea>
+                    <label for="parking-type">🎯 Art des kostenlosen Parkens *</label>
+                    <select id="parking-type" name="type" required>
+                        <option value="">Bitte wählen...</option>
+                        <option value="always-free">Generell kostenlos</option>
+                        <option value="disc-required">Kostenlos mit Parkscheibe</option>
+                        <option value="time-limited">Zeitlich begrenzt kostenlos</option>
+                        <option value="lifted-restriction">Aufgehobenes Halteverbot</option>
+                        <option value="disabled-temporary">Temporärer Behindertenplatz</option>
+                    </select>
                 </div>
-                <div class="form-group">
-                    <label for="parking-photo">Foto (optional)</label>
-                    <input type="file" id="parking-photo" accept="image/*">
-                    <small>Zeigen Sie den Parkplatz und das Schild</small>
-                </div>
-                <div class="form-group">
-                    <label>Standort *</label>
-                    <div class="location-controls">
-                        <button type="button" id="use-current-location" class="location-btn">
-                            📍 Aktuellen Standort verwenden
-                        </button>
-                        <button type="button" id="select-on-map" class="location-btn">
-                            🗺️ Auf Karte markieren
-                        </button>
+
+                <!-- Zeitliche Einschränkungen -->
+                <div id="time-restrictions-group" class="form-group" style="display: none;">
+                    <label>⏰ Zeitliche Einschränkungen</label>
+                    
+                    <div class="time-inputs">
+                        <div class="time-row">
+                            <label>Von:</label>
+                            <input type="time" id="restriction-start" name="restrictionStart">
+                            <label>Bis:</label>
+                            <input type="time" id="restriction-end" name="restrictionEnd">
+                        </div>
+                        
+                        <div class="days-selection">
+                            <label>An welchen Tagen?</label>
+                            <div class="day-checkboxes">
+                                <label><input type="checkbox" name="days" value="monday"> Mo</label>
+                                <label><input type="checkbox" name="days" value="tuesday"> Di</label>
+                                <label><input type="checkbox" name="days" value="wednesday"> Mi</label>
+                                <label><input type="checkbox" name="days" value="thursday"> Do</label>
+                                <label><input type="checkbox" name="days" value="friday"> Fr</label>
+                                <label><input type="checkbox" name="days" value="saturday"> Sa</label>
+                                <label><input type="checkbox" name="days" value="sunday"> So</label>
+                            </div>
+                        </div>
                     </div>
-                    <div id="selected-coordinates" class="coordinates-display">
-                        Noch nicht markiert
-                    </div>
                 </div>
-                <button type="submit" class="submit-btn">🚗 Parkplatz melden (+10 Punkte)</button>
+
+                <!-- Parkscheibe Details -->
+                <div id="disc-details-group" class="form-group" style="display: none;">
+                    <label for="disc-duration">⏱️ Parkscheibe für wie lange?</label>
+                    <select id="disc-duration" name="discDuration">
+                        <option value="">Bitte wählen...</option>
+                        <option value="1">1 Stunde</option>
+                        <option value="2">2 Stunden</option>
+                        <option value="3">3 Stunden</option>
+                        <option value="4">4 Stunden</option>
+                        <option value="unlimited">Unbegrenzt</option>
+                    </select>
+                </div>
+
+                <!-- Standort-Karte -->
+                <div class="form-group">
+                    <label>🗺️ Standort genau markieren</label>
+                    <div id="location-map" style="height: 300px; border-radius: 8px; margin-top: 10px;"></div>
+                    <small>Klicken Sie auf die Karte um den genauen Standort zu setzen</small>
+                </div>
+
+                <!-- Koordinaten Anzeige -->
+                <div class="form-group">
+                    <label>📍 Koordinaten</label>
+                    <div id="selected-coordinates" class="coordinates-display">Noch nicht markiert</div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="form-actions">
+                    <button type="submit" class="submit-btn">✅ Parkplatz melden</button>
+                </div>
             </form>
         </div>
     </div>
