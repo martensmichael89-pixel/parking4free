@@ -115,7 +115,7 @@ class FreeParkApp {
     }
 
     setupHomeMap() {
-        // Home-Karte initialisieren (Deutschland Zentrum)
+        // Home-Karte initialisieren
         this.homeMap = L.map('home-map', {
             zoomControl: true,
             scrollWheelZoom: true,
@@ -126,7 +126,24 @@ class FreeParkApp {
             touchZoom: true,
             tap: true, // Aktiviert Touch-Events
             tapTolerance: 15 // Toleranz für Touch-Events
-        }).setView([51.1657, 10.4515], 6);
+        });
+
+        // Automatische Standorterkennung für Mobile
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const { latitude, longitude } = position.coords;
+                    this.homeMap.setView([latitude, longitude], 15); // Zoom auf Benutzer-Standort
+                    console.log('Mobile Standort erkannt:', latitude, longitude);
+                },
+                (error) => {
+                    console.log('Standort nicht verfügbar, verwende Deutschland-Zentrum');
+                    this.homeMap.setView([51.1657, 10.4515], 6); // Fallback: Deutschland Zentrum
+                }
+            );
+        } else {
+            this.homeMap.setView([51.1657, 10.4515], 6); // Fallback: Deutschland Zentrum
+        }
         
         // OpenStreetMap Tile Layer hinzufügen
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -980,14 +997,14 @@ class FreeParkApp {
             const selectedType = e.target.value;
             
             // Zeitliche Einschränkungen anzeigen/verstecken
-            if (selectedType === 'time-limited' || selectedType === 'lifted-restriction' || selectedType === 'disabled-temporary') {
+            if (['time-limited', 'lifted-restriction', 'disabled', 'general'].includes(selectedType)) {
                 timeRestrictionsGroup.style.display = 'block';
             } else {
                 timeRestrictionsGroup.style.display = 'none';
             }
 
             // Parkscheibe-Details anzeigen/verstecken
-            if (selectedType === 'disc-required') {
+            if (selectedType === 'disc') {
                 discDetailsGroup.style.display = 'block';
             } else {
                 discDetailsGroup.style.display = 'none';
@@ -1333,9 +1350,9 @@ class FreeParkApp {
             description: formData.get('description'),
             spaces: formData.get('spaces'),
             type: formData.get('type'),
-            disc_duration: formData.get('discDuration'),
-            restriction_start: formData.get('restrictionStart'),
-            restriction_end: formData.get('restrictionEnd'),
+            disc_duration: formData.get('disc_duration'),
+            restriction_start: formData.get('restriction_start'),
+            restriction_end: formData.get('restriction_end'),
             restriction_days: this.getSelectedDays(),
             latitude: latitude,
             longitude: longitude
@@ -1381,7 +1398,7 @@ class FreeParkApp {
     }
 
     getSelectedDays() {
-        const checkboxes = document.querySelectorAll('input[name="days"]:checked');
+        const checkboxes = document.querySelectorAll('input[name="restriction_days"]:checked');
         return Array.from(checkboxes).map(cb => cb.value).join(',');
     }
 

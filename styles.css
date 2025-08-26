@@ -231,14 +231,17 @@ small {
 }
 
 .modal-content {
-    background-color: #1a1a1a;
-    margin: 5% auto;
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    margin: 2% auto;
     padding: 2rem;
     border: 1px solid #333333;
-    border-radius: 10px;
-    width: 90%;
-    max-width: 400px;
+    border-radius: 15px;
+    width: 95%;
+    max-width: 700px;
+    max-height: 95vh;
+    overflow-y: auto;
     position: relative;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
 }
 
 .close {
