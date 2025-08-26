@@ -28,6 +28,12 @@ class FreeParkApp {
         this.loadParkingList();
         this.loadReportedParkingSpots();
         this.checkAuthStatus();
+        
+        // Marker nach vollständiger Initialisierung hinzufügen
+        console.log('Füge Marker hinzu...');
+        this.addSampleMarkers();
+        this.addHomeMapMarkers();
+        
         console.log('init() abgeschlossen');
     }
 
@@ -105,8 +111,7 @@ class FreeParkApp {
             subdomains: 'abc'
         }).addTo(this.map);
 
-        // Beispieldaten auf der Karte anzeigen
-        this.addSampleMarkers();
+        // Beispieldaten werden später in init() hinzugefügt
     }
 
     setupHomeMap() {
@@ -128,8 +133,7 @@ class FreeParkApp {
             subdomains: 'abc'
         }).addTo(this.homeMap);
 
-        // Beispieldaten auf der Home-Karte anzeigen
-        this.addHomeMapMarkers();
+        // Beispieldaten werden später in init() hinzugefügt
     }
 
     addHomeMapMarkers() {
