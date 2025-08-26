@@ -441,8 +441,9 @@ class FreeParkApp {
         parkingList.innerHTML = listHTML;
     }
 
-    loadReportedParkingSpots() {
-        fetch(`${this.apiBaseUrl}/reported-parking`)
+        loadReportedParkingSpots() {
+        // Temporärer Workaround: Verwende parking-Route statt reported-parking
+        fetch(`${this.apiBaseUrl}/parking`)
             .then(response => {
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}`);
@@ -450,22 +451,22 @@ class FreeParkApp {
                 return response.json();
             })
             .then(data => {
-                console.log('Gemeldete Parkplätze geladen:', data);
+                console.log('Parkplätze geladen:', data);
                 // Sicherstellen, dass data ein Array ist
                 const parkingSpots = Array.isArray(data) ? data : [];
                 this.displayReportedParkingSpots(parkingSpots);
             })
-                    .catch(error => {
-            console.error('Fehler beim Laden der gemeldeten Parkplätze:', error);
-            
-            // Detailliertere Fehlerbehandlung
-            if (error.message.includes('HTTP 404')) {
-                console.log('API-Route nicht verfügbar - Backend wird aktualisiert');
-            }
-            
-            // Keine lokale Speicherung - nur Backend
-            this.displayReportedParkingSpots([]);
-        });
+            .catch(error => {
+                console.error('Fehler beim Laden der Parkplätze:', error);
+                
+                // Detailliertere Fehlerbehandlung
+                if (error.message.includes('HTTP 404')) {
+                    console.log('API-Route nicht verfügbar - Backend wird aktualisiert');
+                }
+                
+                // Keine lokale Speicherung - nur Backend
+                this.displayReportedParkingSpots([]);
+            });
     }
 
     displayReportedParkingSpots(parkingSpots) {
@@ -1370,14 +1371,22 @@ class FreeParkApp {
             return;
         }
 
-        // An Backend senden
-        fetch(`${this.apiBaseUrl}/reported-parking`, {
+        // An Backend senden (temporärer Workaround)
+        fetch(`${this.apiBaseUrl}/parking`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${localStorage.getItem('token')}`
             },
-            body: JSON.stringify(parkingData)
+            body: JSON.stringify({
+                name: parkingData.address,
+                address: parkingData.address,
+                city: parkingData.address.split(',').pop()?.trim() || 'Unbekannt',
+                type: parkingData.type,
+                lat: parkingData.latitude,
+                lng: parkingData.longitude,
+                available: 1
+            })
         })
         .then(response => {
             if (!response.ok) {
