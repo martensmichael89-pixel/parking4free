@@ -905,16 +905,65 @@ class FreeParkApp {
             }
         });
 
+        // Globale Event-Delegation für Logout-Button
+        document.addEventListener('click', (e) => {
+            if (e.target && e.target.id === 'logout-btn') {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Logout-Button über Event-Delegation geklickt');
+                this.logout();
+            }
+        });
+
+        document.addEventListener('touchend', (e) => {
+            if (e.target && e.target.id === 'logout-btn') {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Logout-Button über Event-Delegation berührt');
+                this.logout();
+            }
+        });
+
         // Zusätzliche Logout-Event-Listener für bessere Kompatibilität
         setTimeout(() => {
             const logoutBtn = document.getElementById('logout-btn');
             if (logoutBtn) {
                 console.log('Logout-Button gefunden, Event-Listener hinzugefügt');
-                logoutBtn.onclick = () => this.logout();
-                logoutBtn.ontouchend = (e) => {
+                
+                // Alle bestehenden Event-Listener entfernen
+                logoutBtn.replaceWith(logoutBtn.cloneNode(true));
+                const newLogoutBtn = document.getElementById('logout-btn');
+                
+                // Neue Event-Listener hinzufügen
+                newLogoutBtn.addEventListener('click', (e) => {
                     e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Logout-Button geklickt');
+                    this.logout();
+                });
+                
+                newLogoutBtn.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Logout-Button berührt');
+                    this.logout();
+                });
+                
+                // Direkte Event-Properties als Fallback
+                newLogoutBtn.onclick = (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Logout-Button onclick');
                     this.logout();
                 };
+                
+                newLogoutBtn.ontouchend = (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Logout-Button ontouchend');
+                    this.logout();
+                };
+                
             } else {
                 console.error('Logout-Button nicht gefunden!');
             }
