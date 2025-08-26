@@ -1372,21 +1372,26 @@ class FreeParkApp {
         }
 
         // An Backend senden
+        const requestData = {
+            name: parkingData.address,
+            address: parkingData.address,
+            city: parkingData.address.split(',').pop()?.trim() || 'Unbekannt',
+            type: parkingData.type,
+            lat: parkingData.latitude,
+            lng: parkingData.longitude,
+            available: 1
+        };
+        
+        console.log('Sende Parkplatz-Daten:', requestData);
+        console.log('API URL:', `${this.apiBaseUrl}/parking`);
+        
         fetch(`${this.apiBaseUrl}/parking`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${localStorage.getItem('token')}`
             },
-            body: JSON.stringify({
-                name: parkingData.address,
-                address: parkingData.address,
-                city: parkingData.address.split(',').pop()?.trim() || 'Unbekannt',
-                type: parkingData.type,
-                lat: parkingData.latitude,
-                lng: parkingData.longitude,
-                available: 1
-            })
+            body: JSON.stringify(requestData)
         })
         .then(response => {
             if (!response.ok) {
@@ -1410,6 +1415,8 @@ class FreeParkApp {
             console.error('Fehler beim Melden des Parkplatzes:', error);
             console.error('API Base URL:', this.apiBaseUrl);
             console.error('Token:', localStorage.getItem('token') ? 'Vorhanden' : 'Fehlt');
+            console.error('Error Type:', error.constructor.name);
+            console.error('Error Message:', error.message);
             
             // Detailliertere Fehlerbehandlung
             if (error.message.includes('HTTP 404')) {
@@ -1418,8 +1425,10 @@ class FreeParkApp {
                 this.showNotification('Nicht autorisiert - Bitte erneut einloggen', 'error');
             } else if (error.message.includes('HTTP 500')) {
                 this.showNotification('Server-Fehler - Bitte später versuchen', 'error');
-            } else if (error.message.includes('Failed to fetch')) {
+            } else if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
                 this.showNotification('Verbindungsfehler - Bitte Internetverbindung prüfen', 'error');
+            } else if (error.message.includes('CORS')) {
+                this.showNotification('CORS-Fehler - Bitte Browser-Cache leeren', 'error');
             } else {
                 this.showNotification(`Fehler: ${error.message}`, 'error');
             }
