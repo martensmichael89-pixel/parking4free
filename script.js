@@ -137,85 +137,11 @@ class FreeParkApp {
     }
 
     addHomeMapMarkers() {
-        const sampleLocations = [
-            { name: 'Berlin - Alexanderplatz', lat: 52.5219, lng: 13.4132, type: 'free', available: true },
-            { name: 'Hamburg - Rathaus', lat: 53.5511, lng: 9.9937, type: 'paid', available: true },
-            { name: 'München - Marienplatz', lat: 48.1372, lng: 11.5755, type: 'time-limited', available: false },
-            { name: 'Köln - Dom', lat: 50.9375, lng: 6.9603, type: 'free', available: true },
-            { name: 'Frankfurt - Hauptbahnhof', lat: 50.1109, lng: 8.6821, type: 'paid', available: true },
-            { name: 'Stuttgart - Schlossplatz', lat: 48.7758, lng: 9.1829, type: 'free', available: true },
-            { name: 'Düsseldorf - Altstadt', lat: 51.2277, lng: 6.7735, type: 'time-limited', available: true },
-            { name: 'Dortmund - Westfalenpark', lat: 51.5136, lng: 7.4653, type: 'free', available: true }
-        ];
-
-        sampleLocations.forEach(location => {
-            const markerColor = this.getMarkerColor(location.type, location.available);
-            const marker = L.circleMarker([location.lat, location.lng], {
-                radius: 6,
-                fillColor: markerColor,
-                color: '#ffffff',
-                weight: 2,
-                opacity: 1,
-                fillOpacity: 0.8
-            }).addTo(this.homeMap);
-
-            const popupContent = `
-                <div style="text-align: center; min-width: 180px;">
-                    <h3 style="margin: 0 0 8px 0; color: #00ff00; font-size: 14px;">${location.name}</h3>
-                    <p style="margin: 3px 0; color: #333; font-size: 12px;">
-                        <strong>Typ:</strong> ${this.getTypeLabel(location.type)}<br>
-                        <strong>Status:</strong> ${location.available ? 'Verfügbar' : 'Besetzt'}<br>
-                        <strong>Preis:</strong> ${this.getPriceLabel(location.type)}
-                    </p>
-                </div>
-            `;
-
-            marker.bindPopup(popupContent);
-            this.homeMarkers.push(marker);
-        });
+        // Keine Beispieldaten mehr - nur gemeldete Parkplätze werden angezeigt
     }
 
     addSampleMarkers() {
-        const sampleLocations = [
-            { name: 'Berlin - Alexanderplatz', lat: 52.5219, lng: 13.4132, type: 'free', available: true },
-            { name: 'Hamburg - Rathaus', lat: 53.5511, lng: 9.9937, type: 'paid', available: true },
-            { name: 'München - Marienplatz', lat: 48.1372, lng: 11.5755, type: 'time-limited', available: false },
-            { name: 'Köln - Dom', lat: 50.9375, lng: 6.9603, type: 'free', available: true },
-            { name: 'Frankfurt - Hauptbahnhof', lat: 50.1109, lng: 8.6821, type: 'paid', available: true },
-            { name: 'Stuttgart - Schlossplatz', lat: 48.7758, lng: 9.1829, type: 'free', available: true },
-            { name: 'Düsseldorf - Altstadt', lat: 51.2277, lng: 6.7735, type: 'time-limited', available: true },
-            { name: 'Dortmund - Westfalenpark', lat: 51.5136, lng: 7.4653, type: 'free', available: true }
-        ];
-
-        sampleLocations.forEach(location => {
-            const markerColor = this.getMarkerColor(location.type, location.available);
-            const marker = L.circleMarker([location.lat, location.lng], {
-                radius: 8,
-                fillColor: markerColor,
-                color: '#ffffff',
-                weight: 2,
-                opacity: 1,
-                fillOpacity: 0.8
-            }).addTo(this.map);
-
-            const popupContent = `
-                <div style="text-align: center; min-width: 200px;">
-                    <h3 style="margin: 0 0 10px 0; color: #00ff00;">${location.name}</h3>
-                    <p style="margin: 5px 0; color: #333;">
-                        <strong>Typ:</strong> ${this.getTypeLabel(location.type)}<br>
-                        <strong>Status:</strong> ${location.available ? 'Verfügbar' : 'Besetzt'}<br>
-                        <strong>Preis:</strong> ${this.getPriceLabel(location.type)}
-                    </p>
-                    <button onclick="app.showDirections(${location.lat}, ${location.lng})" 
-                            style="background: #00ff00; color: black; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin-top: 10px; font-weight: bold;">
-                        Route anzeigen
-                    </button>
-                </div>
-            `;
-
-            marker.bindPopup(popupContent);
-            this.markers.push(marker);
-        });
+        // Keine Beispieldaten mehr - nur gemeldete Parkplätze werden angezeigt
     }
 
     getMarkerColor(type, available) {
@@ -874,64 +800,7 @@ class FreeParkApp {
     }
 
     generateSampleData() {
-        return [
-            {
-                name: 'Parkplatz Alexanderplatz',
-                address: 'Alexanderplatz 1, 10178 Berlin',
-                city: 'Berlin',
-                type: 'paid',
-                available: true
-            },
-            {
-                name: 'Kostenloser Parkplatz Tiergarten',
-                address: 'Straße des 17. Juni, 10557 Berlin',
-                city: 'Berlin',
-                type: 'free',
-                available: true
-            },
-            {
-                name: 'Parkhaus Rathaus Hamburg',
-                address: 'Rathausmarkt 1, 20095 Hamburg',
-                city: 'Hamburg',
-                type: 'paid',
-                available: false
-            },
-            {
-                name: 'Straßenparken St. Pauli',
-                address: 'Reeperbahn 1, 20359 Hamburg',
-                city: 'Hamburg',
-                type: 'time-limited',
-                available: true
-            },
-            {
-                name: 'Parkplatz Marienplatz',
-                address: 'Marienplatz 1, 80331 München',
-                city: 'München',
-                type: 'paid',
-                available: true
-            },
-            {
-                name: 'Kostenloser Parkplatz Olympiapark',
-                address: 'Spiridon-Louis-Ring 21, 80809 München',
-                city: 'München',
-                type: 'free',
-                available: true
-            },
-            {
-                name: 'Parkhaus Dom Köln',
-                address: 'Domkloster 4, 50667 Köln',
-                city: 'Köln',
-                type: 'paid',
-                available: true
-            },
-            {
-                name: 'Straßenparken Altstadt',
-                address: 'Hohe Straße 1, 50667 Köln',
-                city: 'Köln',
-                type: 'time-limited',
-                available: false
-            }
-        ];
+        return []; // Keine Beispieldaten mehr - nur gemeldete Parkplätze werden angezeigt
     }
 
     // Mitgliederbereich-Funktionen
