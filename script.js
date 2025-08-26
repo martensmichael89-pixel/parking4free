@@ -252,27 +252,6 @@ class FreeParkApp {
     }
 
     setupEventListeners() {
-        // Postleitzahl-Suche
-        const postalSearchBtn = document.getElementById('postal-search-btn');
-        const postalSearch = document.getElementById('postal-search');
-        
-        if (postalSearchBtn && postalSearch) {
-            postalSearchBtn.addEventListener('click', () => {
-                this.searchByPostalCode(postalSearch.value);
-            });
-            
-            postalSearch.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    this.searchByPostalCode(postalSearch.value);
-                }
-            });
-
-            // Nur Zahlen erlauben
-            postalSearch.addEventListener('input', (e) => {
-                e.target.value = e.target.value.replace(/[^0-9]/g, '');
-            });
-        }
-
         // Karten-Suche
         const searchBtn = document.getElementById('search-btn');
         const locationSearch = document.getElementById('location-search');
@@ -314,92 +293,7 @@ class FreeParkApp {
         }
     }
 
-    searchByPostalCode(postalCode) {
-        if (!postalCode.trim() || postalCode.length !== 5) {
-            this.showNotification('Bitte geben Sie eine gültige 5-stellige Postleitzahl ein.', 'warning');
-            return;
-        }
 
-        // Deutsche Postleitzahlen-Mapping (Beispiele)
-        const postalCodeMap = {
-            '10115': [52.5200, 13.4050, 'Berlin-Mitte'],
-            '20095': [53.5511, 9.9937, 'Hamburg-Altstadt'],
-            '80331': [48.1351, 11.5820, 'München-Altstadt'],
-            '50667': [50.9375, 6.9603, 'Köln-Altstadt'],
-            '60311': [50.1109, 8.6821, 'Frankfurt-Altstadt'],
-            '70173': [48.7758, 9.1829, 'Stuttgart-Altstadt'],
-            '40213': [51.2277, 6.7735, 'Düsseldorf-Altstadt'],
-            '44135': [51.5136, 7.4653, 'Dortmund-Altstadt'],
-            '10117': [52.5200, 13.4050, 'Berlin-Mitte'],
-            '10119': [52.5200, 13.4050, 'Berlin-Mitte'],
-            '10178': [52.5200, 13.4050, 'Berlin-Mitte'],
-            '10179': [52.5200, 13.4050, 'Berlin-Mitte'],
-            '20097': [53.5511, 9.9937, 'Hamburg-Altstadt'],
-            '20099': [53.5511, 9.9937, 'Hamburg-Altstadt'],
-            '80335': [48.1351, 11.5820, 'München-Altstadt'],
-            '80339': [48.1351, 11.5820, 'München-Altstadt'],
-            '50668': [50.9375, 6.9603, 'Köln-Altstadt'],
-            '50670': [50.9375, 6.9603, 'Köln-Altstadt'],
-            '60312': [50.1109, 8.6821, 'Frankfurt-Altstadt'],
-            '60313': [50.1109, 8.6821, 'Frankfurt-Altstadt'],
-            '70174': [48.7758, 9.1829, 'Stuttgart-Altstadt'],
-            '70176': [48.7758, 9.1829, 'Stuttgart-Altstadt'],
-            '40210': [51.2277, 6.7735, 'Düsseldorf-Altstadt'],
-            '40211': [51.2277, 6.7735, 'Düsseldorf-Altstadt'],
-            '44137': [51.5136, 7.4653, 'Dortmund-Altstadt'],
-            '44139': [51.5136, 7.4653, 'Dortmund-Altstadt']
-        };
-
-        const location = postalCodeMap[postalCode];
-        
-        if (location) {
-            const [lat, lng, cityName] = location;
-            this.homeMap.setView([lat, lng], 13);
-            this.showNotification(`Gefunden: ${cityName} (${postalCode})`, 'success');
-            
-            // Markierung für die gesuchte Postleitzahl hinzufügen
-            this.addPostalCodeMarker(lat, lng, cityName, postalCode);
-        } else {
-            // Fallback: Deutschland Zentrum
-            this.homeMap.setView([51.1657, 10.4515], 6);
-            this.showNotification(`Postleitzahl ${postalCode} nicht gefunden. Zeige Deutschland-Übersicht.`, 'warning');
-        }
-    }
-
-    addPostalCodeMarker(lat, lng, cityName, postalCode) {
-        // Bestehende Postleitzahl-Marker entfernen
-        this.homeMarkers.forEach(marker => {
-            if (marker.isPostalCodeMarker) {
-                this.homeMap.removeLayer(marker);
-            }
-        });
-
-        // Neuen Marker hinzufügen
-        const marker = L.circleMarker([lat, lng], {
-            radius: 10,
-            fillColor: '#ff0000',
-            color: '#ffffff',
-            weight: 3,
-            opacity: 1,
-            fillOpacity: 0.8
-        }).addTo(this.homeMap);
-
-        marker.isPostalCodeMarker = true;
-
-        const popupContent = `
-            <div style="text-align: center; min-width: 200px;">
-                <h3 style="margin: 0 0 8px 0; color: #ff0000; font-size: 16px;">📍 ${cityName}</h3>
-                <p style="margin: 3px 0; color: #333; font-size: 14px;">
-                    <strong>Postleitzahl:</strong> ${postalCode}<br>
-                    <strong>Status:</strong> Suche nach Parkplätzen...
-                </p>
-            </div>
-        `;
-
-        marker.bindPopup(popupContent);
-        marker.openPopup();
-        this.homeMarkers.push(marker);
-    }
 
     searchLocation(query) {
         if (!query.trim()) return;

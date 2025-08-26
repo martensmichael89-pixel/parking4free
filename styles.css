@@ -246,61 +246,16 @@ body {
     color: #4ade80;
 }
 
-/* Postleitzahl Suche */
-.postal-search {
-    display: flex;
-    justify-content: center;
-    gap: 1rem;
-    margin-bottom: 3rem;
-    flex-wrap: wrap;
-}
 
-.postal-input {
-    padding: 1rem 1.5rem;
-    border: 1px solid #333333;
-    border-radius: 5px;
-    background-color: #0a0a0a;
-    color: #ffffff;
-    font-size: 1.1rem;
-    width: 250px;
-    text-align: center;
-    font-weight: bold;
-    letter-spacing: 2px;
-}
-
-.postal-input::placeholder {
-    color: #888888;
-    letter-spacing: normal;
-}
-
-.postal-input:focus {
-    outline: 2px solid #4ade80;
-    border-color: #4ade80;
-}
-
-.postal-search-btn {
-    padding: 1rem 2rem;
-    background: #4ade80;
-    color: #000000;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 1.1rem;
-    transition: all 0.3s ease;
-}
-
-.postal-search-btn:hover {
-    background: #22c55e;
-}
 
 /* Home Karte */
 .home-map {
-    height: 400px;
+    height: 600px;
     border: 1px solid #333333;
     overflow: hidden;
     margin: 0 auto;
-    max-width: 800px;
+    max-width: 1200px;
+    border-radius: 10px;
 }
 
 /* Map Section */
@@ -640,17 +595,10 @@ body {
     }
     
     .home-map {
-        height: 300px;
+        height: 400px;
     }
     
-    .postal-search {
-        flex-direction: column;
-        align-items: center;
-    }
-    
-    .postal-input {
-        width: 200px;
-    }
+
 
     .list-header {
         flex-direction: column;
@@ -719,19 +667,10 @@ body {
     }
     
     .home-map {
-        height: 250px;
+        height: 350px;
     }
     
-    .postal-input {
-        width: 180px;
-        font-size: 1rem;
-        padding: 0.8rem;
-    }
-    
-    .postal-search-btn {
-        padding: 0.8rem 1.5rem;
-        font-size: 1rem;
-    }
+
     
     .search-input {
         font-size: 0.9rem;
