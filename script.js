@@ -404,9 +404,8 @@ class FreeParkApp {
             })
             .catch(error => {
                 console.error('Fehler beim Laden der gemeldeten Parkplätze:', error);
-                // Fallback: Lokale Daten laden
-                const localSpots = JSON.parse(localStorage.getItem('localParkingSpots') || '[]');
-                this.displayReportedParkingSpots(localSpots);
+                // Keine lokale Speicherung - nur Backend
+                this.displayReportedParkingSpots([]);
             });
     }
 
@@ -1108,29 +1107,8 @@ class FreeParkApp {
         })
         .catch(error => {
             console.error('Fehler beim Melden des Parkplatzes:', error);
-            // Fallback: Lokal speichern für Demo-Zwecke
-            this.saveParkingSpotLocally(formData);
-            this.showNotification('Parkplatz lokal gespeichert (Backend nicht erreichbar)', 'warning');
-            this.hideModal(document.getElementById('report-parking-modal'));
+            this.showNotification('Backend nicht erreichbar - Parkplatz konnte nicht gespeichert werden', 'error');
         });
-    }
-
-    saveParkingSpotLocally(formData) {
-        // Lokale Speicherung für Demo-Zwecke
-        const localSpots = JSON.parse(localStorage.getItem('localParkingSpots') || '[]');
-        const newSpot = {
-            ...formData,
-            id: Date.now(),
-            reporter_name: this.currentUser.name,
-            created_at: new Date().toISOString(),
-            status: 'pending'
-        };
-        localSpots.push(newSpot);
-        localStorage.setItem('localParkingSpots', JSON.stringify(localSpots));
-        
-        // Karte mit lokalem Spot aktualisieren
-        this.displayReportedParkingSpots(localSpots);
-    }
 
     generateSampleData() {
         return []; // Keine Beispieldaten mehr - nur gemeldete Parkplätze werden angezeigt
@@ -1207,28 +1185,16 @@ class FreeParkApp {
     }
 
     loadFavorites() {
-        const favorites = JSON.parse(localStorage.getItem('userFavorites') || '[]');
+        // Favoriten werden vom Backend geladen (noch nicht implementiert)
         const favoritesList = document.getElementById('favorites-list');
-        
-        if (favorites.length === 0) {
-            favoritesList.innerHTML = '<p class="no-favorites">Noch keine Favoriten gespeichert</p>';
-        } else {
-            favoritesList.innerHTML = favorites.map(fav => `
-                <div class="favorite-item">
-                    <h4>${fav.name}</h4>
-                    <p>${fav.address}</p>
-                    <p><strong>Typ:</strong> ${fav.type}</p>
-                </div>
-            `).join('');
-        }
+        favoritesList.innerHTML = '<p class="no-favorites">Favoriten werden vom Backend geladen</p>';
     }
 
     loadSettings() {
-        const settings = JSON.parse(localStorage.getItem('userSettings') || '{}');
-        
-        document.getElementById('email-notifications').checked = settings.emailNotifications || false;
-        document.getElementById('auto-save-favorites').checked = settings.autoSaveFavorites || false;
-        document.getElementById('dark-mode').checked = settings.darkMode || false;
+        // Einstellungen werden vom Backend geladen (noch nicht implementiert)
+        document.getElementById('email-notifications').checked = false;
+        document.getElementById('auto-save-favorites').checked = false;
+        document.getElementById('dark-mode').checked = false;
     }
 
     // Event Listeners für Mitgliederbereich
@@ -1354,16 +1320,7 @@ class FreeParkApp {
             status: 'pending' // Wartet auf Überprüfung
         };
         
-        // Lokal speichern (für Demo-Zwecke)
-        const reports = JSON.parse(localStorage.getItem('userReports') || '[]');
-        reports.push(report);
-        localStorage.setItem('userReports', JSON.stringify(reports));
-        
-        // Statistiken und Punkte aktualisieren
-        const stats = JSON.parse(localStorage.getItem('userStats') || '{}');
-        stats.reports = (stats.reports || 0) + 1;
-        stats.points = (stats.points || 0) + 10; // 10 Punkte pro Meldung
-        localStorage.setItem('userStats', JSON.stringify(stats));
+        // Alles wird im Backend gespeichert - keine lokale Speicherung
         
         this.loadUserStats();
         this.showNotification('Parkplatz erfolgreich gemeldet! +10 Punkte erhalten!', 'success');
@@ -1415,14 +1372,8 @@ function addToFavorites() {
 }
 
 function saveSettings() {
-    const settings = {
-        emailNotifications: document.getElementById('email-notifications').checked,
-        autoSaveFavorites: document.getElementById('auto-save-favorites').checked,
-        darkMode: document.getElementById('dark-mode').checked
-    };
-    
-    localStorage.setItem('userSettings', JSON.stringify(settings));
-    app.showNotification('Einstellungen gespeichert!', 'success');
+    // Einstellungen werden im Backend gespeichert (noch nicht implementiert)
+    app.showNotification('Einstellungen werden im Backend gespeichert', 'info');
 }
 
 function loadLeaderboard() {
