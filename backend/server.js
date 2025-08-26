@@ -78,14 +78,10 @@ const authLimiter = rateLimit({
     legacyHeaders: false
 });
 
-// Rate-Limiting nur in Produktion aktivieren
-if (process.env.NODE_ENV === 'production') {
-    app.use('/api/', limiter);
-    app.use('/api/auth', authLimiter);
-    console.log('Rate-Limiting aktiviert (Produktion)');
-} else {
-    console.log('Rate-Limiting deaktiviert (Entwicklung)');
-}
+// Rate-Limiting für alle Umgebungen deaktiviert (temporär)
+console.log('Rate-Limiting deaktiviert für alle Umgebungen');
+// app.use('/api/', limiter);
+// app.use('/api/auth', authLimiter);
 
 // Body Parser
 app.use(express.json({ limit: '10mb' }));
