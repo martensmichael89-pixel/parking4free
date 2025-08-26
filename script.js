@@ -806,15 +806,52 @@ class FreeParkApp {
 
         // Event Listeners
         this.loginBtn.addEventListener('click', () => this.showModal(this.loginModal));
+        this.loginBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            this.showModal(this.loginModal);
+        });
+        
         this.registerBtn.addEventListener('click', () => this.showModal(this.registerModal));
+        this.registerBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            this.showModal(this.registerModal);
+        });
+        
         this.reportParkingBtn.addEventListener('click', () => this.openReportParkingModal());
+        this.reportParkingBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            this.openReportParkingModal();
+        });
         
         this.logoutBtn.addEventListener('click', () => this.handleLogout());
+        this.logoutBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            this.handleLogout();
+        });
+        
         this.memberBtn.addEventListener('click', () => this.showMemberArea());
+        this.memberBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            this.showMemberArea();
+        });
 
         this.closeLogin.addEventListener('click', () => this.hideModal(this.loginModal));
+        this.closeLogin.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            this.hideModal(this.loginModal);
+        });
+        
         this.closeRegister.addEventListener('click', () => this.hideModal(this.registerModal));
+        this.closeRegister.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            this.hideModal(this.registerModal);
+        });
+        
         this.closeReportParking.addEventListener('click', () => this.hideModal(this.reportParkingModal));
+        this.closeReportParking.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            this.hideModal(this.reportParkingModal);
+        });
 
         this.loginForm.addEventListener('submit', (e) => this.handleLogin(e));
         this.registerForm.addEventListener('submit', (e) => this.handleRegister(e));
@@ -822,6 +859,29 @@ class FreeParkApp {
 
         // Neue Event-Listener für das erweiterte Formular
         this.setupReportFormListeners();
+
+        // Modal schließen wenn außerhalb geklickt wird
+        window.addEventListener('click', (e) => {
+            if (e.target === this.loginModal) this.hideModal(this.loginModal);
+            if (e.target === this.registerModal) this.hideModal(this.registerModal);
+            if (e.target === this.reportParkingModal) this.hideModal(this.reportParkingModal);
+        });
+
+        // Touch-Events für Modal-Hintergrund
+        window.addEventListener('touchend', (e) => {
+            if (e.target === this.loginModal) {
+                e.preventDefault();
+                this.hideModal(this.loginModal);
+            }
+            if (e.target === this.registerModal) {
+                e.preventDefault();
+                this.hideModal(this.registerModal);
+            }
+            if (e.target === this.reportParkingModal) {
+                e.preventDefault();
+                this.hideModal(this.reportParkingModal);
+            }
+        });
     }
 
     setupReportFormListeners() {
@@ -851,16 +911,22 @@ class FreeParkApp {
 
     showModal(modal) {
         modal.style.display = 'block';
+        // Verhindere Scrollen im Hintergrund
+        document.body.style.overflow = 'hidden';
     }
 
     hideModal(modal) {
         modal.style.display = 'none';
+        // Erlaube Scrollen wieder
+        document.body.style.overflow = 'auto';
         // Reset form
         const form = modal.querySelector('form');
         if (form) form.reset();
     }
 
-    handleLogin() {
+    handleLogin(e) {
+        if (e) e.preventDefault();
+        
         const email = document.getElementById('login-email').value;
         const password = document.getElementById('login-password').value;
 
