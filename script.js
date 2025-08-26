@@ -123,7 +123,9 @@ class FreeParkApp {
             boxZoom: false,
             keyboard: true,
             dragging: true,
-            touchZoom: true
+            touchZoom: true,
+            tap: true, // Aktiviert Touch-Events
+            tapTolerance: 15 // Toleranz für Touch-Events
         }).setView([51.1657, 10.4515], 6);
         
         // OpenStreetMap Tile Layer hinzufügen
@@ -134,8 +136,31 @@ class FreeParkApp {
         }).addTo(this.homeMap);
 
         // Direkte Karten-Klick-Funktion für Parkplatz-Meldung (nur wenn eingeloggt)
+        // Sowohl für Desktop (click) als auch Mobile (touchend)
         this.homeMap.on('click', (e) => {
-            console.log('Karte geklickt, currentUser:', this.currentUser);
+            console.log('Karte geklickt (click), currentUser:', this.currentUser);
+            if (this.currentUser) {
+                console.log('Benutzer eingeloggt, handleDirectMapClick aufrufen');
+                this.handleDirectMapClick(e);
+            } else {
+                console.log('Benutzer nicht eingeloggt, Popup nicht anzeigen');
+            }
+        });
+
+        // Touch-Event für mobile Geräte
+        this.homeMap.on('touchend', (e) => {
+            console.log('Karte berührt (touchend), currentUser:', this.currentUser);
+            if (this.currentUser) {
+                console.log('Benutzer eingeloggt, handleDirectMapClick aufrufen');
+                this.handleDirectMapClick(e);
+            } else {
+                console.log('Benutzer nicht eingeloggt, Popup nicht anzeigen');
+            }
+        });
+
+        // Zusätzliche Touch-Event-Behandlung für mobile Geräte
+        this.homeMap.on('tap', (e) => {
+            console.log('Karte getappt (tap), currentUser:', this.currentUser);
             if (this.currentUser) {
                 console.log('Benutzer eingeloggt, handleDirectMapClick aufrufen');
                 this.handleDirectMapClick(e);
@@ -1492,8 +1517,16 @@ class FreeParkApp {
             attribution: '© OpenStreetMap contributors'
         }).addTo(this.locationMap);
 
-        // Klick-Event für Standort-Markierung
+        // Klick-Event für Standort-Markierung (Desktop)
         this.locationMap.on('click', (e) => {
+            const { lat, lng } = e.latlng;
+            this.setSelectedCoordinates(lat, lng);
+            this.reverseGeocode(lat, lng);
+            this.addLocationMarker(lat, lng);
+        });
+
+        // Touch-Event für Standort-Markierung (Mobile)
+        this.locationMap.on('touchend', (e) => {
             const { lat, lng } = e.latlng;
             this.setSelectedCoordinates(lat, lng);
             this.reverseGeocode(lat, lng);

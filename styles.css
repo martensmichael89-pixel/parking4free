@@ -367,6 +367,13 @@ small {
     max-width: 1200px;
     border-radius: 10px;
     position: relative;
+    touch-action: manipulation; /* Verhindert Zoom bei Touch */
+    -webkit-touch-callout: none; /* Verhindert Callout auf iOS */
+    -webkit-user-select: none; /* Verhindert Textauswahl */
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 /* Map Click Hint */
@@ -1564,6 +1571,13 @@ select:focus {
 #location-map {
     border: 2px solid #e0e0e0;
     background: #f8f9fa;
+    touch-action: manipulation; /* Verhindert Zoom bei Touch */
+    -webkit-touch-callout: none; /* Verhindert Callout auf iOS */
+    -webkit-user-select: none; /* Verhindert Textauswahl */
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 .time-inputs {
