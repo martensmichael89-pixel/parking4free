@@ -111,11 +111,13 @@ app.use('*', (req, res) => {
 app.listen(PORT, () => {
     console.log(`🚀 Server läuft auf Port ${PORT}`);
     console.log(`📡 API verfügbar unter: http://localhost:${PORT}/api`);
+    console.log(`🌐 Online-Backend: https://parking4free-backend.onrender.com/api`);
     
     // Datenbank initialisieren
     initDatabase().then(() => {
         console.log(`👑 Admin-Account: admin@parking4free.de / admin123`);
         console.log(`📊 Neue Tabellen: reported_parking_spots, user_statistics`);
+        console.log(`✅ Alle Routen verfügbar: /auth, /users, /admin, /parking, /reported-parking, /statistics`);
     }).catch(err => {
         console.error('❌ Fehler beim Initialisieren der Datenbank:', err);
     });
