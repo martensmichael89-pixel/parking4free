@@ -321,55 +321,85 @@ class FreeParkApp {
     }
 
     loadReportedParkingSpots() {
-        // Gemeldete Parkplätze aus localStorage laden
-        const reportedSpots = JSON.parse(localStorage.getItem('userReports') || '[]');
-        
-        if (reportedSpots.length === 0) return;
-        
-        // Marker für gemeldete Parkplätze hinzufügen
-        reportedSpots.forEach(spot => {
-            if (spot.coordinates && spot.coordinates !== 'Noch nicht markiert') {
-                const [lat, lng] = spot.coordinates.split(', ').map(coord => parseFloat(coord));
-                
-                if (!isNaN(lat) && !isNaN(lng)) {
-                    const marker = L.marker([lat, lng], {
-                        icon: L.divIcon({
-                            className: 'reported-parking-marker',
-                            html: '<div style="background: #4ade80; width: 20px; height: 20px; border-radius: 50%; border: 3px solid #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>',
-                            iconSize: [20, 20],
-                            iconAnchor: [10, 10]
-                        })
-                    });
+        fetch(`${this.apiBaseUrl}/reported-parking`)
+            .then(response => response.json())
+            .then(data => {
+                console.log('Gemeldete Parkplätze geladen:', data);
+                this.displayReportedParkingSpots(data);
+            })
+            .catch(error => {
+                console.error('Fehler beim Laden der gemeldeten Parkplätze:', error);
+            });
+    }
 
-                    const popupContent = `
-                        <div style="min-width: 200px;">
-                            <h3 style="color: #4ade80; margin: 0 0 10px 0;">🚨 Gemeldeter Parkplatz</h3>
-                            <p><strong>Adresse:</strong> ${spot.address}</p>
-                            <p><strong>Typ:</strong> ${this.getReportedTypeLabel(spot.type)}</p>
-                            <p><strong>Gemeldet von:</strong> ${spot.userId}</p>
-                            <p><strong>Datum:</strong> ${new Date(spot.timestamp).toLocaleDateString('de-DE')}</p>
-                            ${spot.description ? `<p><strong>Beschreibung:</strong> ${spot.description}</p>` : ''}
-                            ${spot.timeRestrictions ? `<p><strong>Zeitliche Einschränkungen:</strong> ${this.formatTimeRestrictions(spot.timeRestrictions)}</p>` : ''}
-                            <div style="margin-top: 10px; padding: 5px; background: #1a1a1a; border-radius: 3px;">
-                                <small style="color: #888888;">Status: ${spot.status === 'pending' ? '⏳ Wartet auf Überprüfung' : '✅ Bestätigt'}</small>
-                            </div>
-                        </div>
-                    `;
+    displayReportedParkingSpots(parkingSpots) {
+        // Bestehende Marker entfernen
+        this.markers.forEach(marker => {
+            this.map.removeLayer(marker);
+        });
+        this.homeMarkers.forEach(marker => {
+            this.homeMap.removeLayer(marker);
+        });
+        this.markers = [];
+        this.homeMarkers = [];
 
-                    marker.bindPopup(popupContent);
-                    
-                    // Marker zur Karte hinzufügen
-                    if (this.map) {
-                        marker.addTo(this.map);
-                    }
-                    
-                    // Marker zur Liste hinzufügen für späteres Management
-                    if (!this.reportedMarkers) {
-                        this.reportedMarkers = [];
-                    }
-                    this.reportedMarkers.push(marker);
-                }
-            }
+        // Neue Marker hinzufügen
+        parkingSpots.forEach(spot => {
+            const markerColor = this.getMarkerColor(spot.type, true);
+            
+            // Marker für Hauptkarte
+            const marker = L.circleMarker([spot.latitude, spot.longitude], {
+                radius: 8,
+                fillColor: markerColor,
+                color: '#ffffff',
+                weight: 2,
+                opacity: 1,
+                fillOpacity: 0.8
+            }).addTo(this.map);
+
+            const popupContent = `
+                <div style="text-align: center; min-width: 200px;">
+                    <h3 style="margin: 0 0 10px 0; color: #00ff00;">${spot.name}</h3>
+                    <p style="margin: 5px 0; color: #333;">
+                        <strong>Typ:</strong> ${this.getTypeLabel(spot.type)}<br>
+                        <strong>Status:</strong> Verfügbar<br>
+                        <strong>Gemeldet von:</strong> ${spot.reporter_name || 'Unbekannt'}<br>
+                        ${spot.description ? `<strong>Beschreibung:</strong> ${spot.description}<br>` : ''}
+                        ${spot.restrictions ? `<strong>Einschränkungen:</strong> ${spot.restrictions}<br>` : ''}
+                    </p>
+                    <button onclick="app.showDirections(${spot.latitude}, ${spot.longitude})" 
+                            style="background: #00ff00; color: black; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin-top: 10px; font-weight: bold;">
+                        Route anzeigen
+                    </button>
+                </div>
+            `;
+
+            marker.bindPopup(popupContent);
+            this.markers.push(marker);
+
+            // Marker für Home-Karte
+            const homeMarker = L.circleMarker([spot.latitude, spot.longitude], {
+                radius: 6,
+                fillColor: markerColor,
+                color: '#ffffff',
+                weight: 2,
+                opacity: 1,
+                fillOpacity: 0.8
+            }).addTo(this.homeMap);
+
+            const homePopupContent = `
+                <div style="text-align: center; min-width: 180px;">
+                    <h3 style="margin: 0 0 8px 0; color: #00ff00; font-size: 14px;">${spot.name}</h3>
+                    <p style="margin: 3px 0; color: #333; font-size: 12px;">
+                        <strong>Typ:</strong> ${this.getTypeLabel(spot.type)}<br>
+                        <strong>Status:</strong> Verfügbar<br>
+                        <strong>Gemeldet von:</strong> ${spot.reporter_name || 'Unbekannt'}
+                    </p>
+                </div>
+            `;
+
+            homeMarker.bindPopup(homePopupContent);
+            this.homeMarkers.push(homeMarker);
         });
     }
 
@@ -552,7 +582,7 @@ class FreeParkApp {
         }, 3000);
     }
 
-    setupAuth() {
+        setupAuth() {
         console.log('setupAuth aufgerufen');
         // Login Modal
         const loginBtn = document.getElementById('login-btn');
@@ -563,12 +593,18 @@ class FreeParkApp {
         console.log('Login Button:', loginBtn);
         console.log('Login Modal:', loginModal);
         console.log('Login Form:', loginForm);
-
+        
         // Register Modal
         const registerBtn = document.getElementById('register-btn');
         const registerModal = document.getElementById('register-modal');
         const closeRegister = document.getElementById('close-register');
         const registerForm = document.getElementById('register-form');
+
+        // Parkplatz Melden Modal
+        const reportParkingBtn = document.getElementById('report-parking-btn');
+        const reportParkingModal = document.getElementById('report-parking-modal');
+        const closeReportParking = document.getElementById('close-report-parking');
+        const reportParkingForm = document.getElementById('report-parking-form');
 
         // Logout
         const logoutBtn = document.getElementById('logout-btn');
@@ -588,10 +624,19 @@ class FreeParkApp {
         closeRegister.addEventListener('click', () => this.hideModal(registerModal));
         logoutBtn.addEventListener('click', () => this.logout());
 
+        // Parkplatz Melden Event Listeners
+        if (reportParkingBtn) {
+            reportParkingBtn.addEventListener('click', () => this.showModal(reportParkingModal));
+        }
+        if (closeReportParking) {
+            closeReportParking.addEventListener('click', () => this.hideModal(reportParkingModal));
+        }
+
         // Close modal when clicking outside
         window.addEventListener('click', (e) => {
             if (e.target === loginModal) this.hideModal(loginModal);
             if (e.target === registerModal) this.hideModal(registerModal);
+            if (e.target === reportParkingModal) this.hideModal(reportParkingModal);
         });
 
         // Form submissions
@@ -610,6 +655,25 @@ class FreeParkApp {
             e.preventDefault();
             this.handleRegister();
         });
+
+        // Parkplatz Melden Form
+        if (reportParkingForm) {
+            reportParkingForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.handleParkingReport();
+            });
+        }
+
+        // Standort-Buttons
+        const useCurrentLocationBtn = document.getElementById('use-current-location');
+        const selectOnMapBtn = document.getElementById('select-on-map');
+
+        if (useCurrentLocationBtn) {
+            useCurrentLocationBtn.addEventListener('click', () => this.useCurrentLocation());
+        }
+        if (selectOnMapBtn) {
+            selectOnMapBtn.addEventListener('click', () => this.selectLocationOnMap());
+        }
     }
 
     showModal(modal) {
@@ -766,11 +830,17 @@ class FreeParkApp {
         const userProfile = document.getElementById('user-profile');
         const username = document.getElementById('username');
         const memberNav = document.querySelector('[data-section="member"]');
+        const reportParkingBtn = document.getElementById('report-parking-btn');
 
         if (this.currentUser) {
             userActions.style.display = 'none';
             userProfile.style.display = 'flex';
             username.textContent = this.currentUser.name;
+            
+            // Parkplatz melden Button anzeigen
+            if (reportParkingBtn) {
+                reportParkingBtn.style.display = 'inline-block';
+            }
             
             // Mitgliederbereich-Navigation anzeigen
             if (memberNav) {
@@ -783,6 +853,11 @@ class FreeParkApp {
         } else {
             userActions.style.display = 'flex';
             userProfile.style.display = 'none';
+            
+            // Parkplatz melden Button verstecken
+            if (reportParkingBtn) {
+                reportParkingBtn.style.display = 'none';
+            }
             
             // Mitgliederbereich-Navigation verstecken
             if (memberNav) {
@@ -797,6 +872,122 @@ class FreeParkApp {
         localStorage.removeItem('token');
         this.updateAuthUI();
         this.showNotification('Erfolgreich abgemeldet', 'success');
+    }
+
+    // Parkplatz Melden Funktionen
+    useCurrentLocation() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    this.setSelectedCoordinates(lat, lng);
+                    this.showNotification('Aktueller Standort verwendet', 'success');
+                },
+                (error) => {
+                    this.showNotification('Standort konnte nicht ermittelt werden', 'error');
+                }
+            );
+        } else {
+            this.showNotification('Geolocation wird nicht unterstützt', 'error');
+        }
+    }
+
+    selectLocationOnMap() {
+        this.showNotification('Klicken Sie auf die Karte, um einen Standort zu markieren', 'info');
+        
+        // Temporären Marker hinzufügen
+        this.tempMarker = null;
+        
+        const onMapClick = (e) => {
+            const lat = e.latlng.lat;
+            const lng = e.latlng.lng;
+            
+            // Bestehenden temporären Marker entfernen
+            if (this.tempMarker) {
+                this.homeMap.removeLayer(this.tempMarker);
+            }
+            
+            // Neuen temporären Marker hinzufügen
+            this.tempMarker = L.circleMarker([lat, lng], {
+                radius: 10,
+                fillColor: '#ff0000',
+                color: '#ffffff',
+                weight: 3,
+                opacity: 1,
+                fillOpacity: 0.8
+            }).addTo(this.homeMap);
+            
+            this.setSelectedCoordinates(lat, lng);
+            this.showNotification('Standort auf Karte markiert', 'success');
+            
+            // Event Listener entfernen
+            this.homeMap.off('click', onMapClick);
+        };
+        
+        this.homeMap.on('click', onMapClick);
+    }
+
+    setSelectedCoordinates(lat, lng) {
+        const coordinatesDisplay = document.getElementById('selected-coordinates');
+        if (coordinatesDisplay) {
+            coordinatesDisplay.textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+            coordinatesDisplay.classList.add('active');
+            this.selectedCoordinates = { lat, lng };
+        }
+    }
+
+    handleParkingReport() {
+        if (!this.currentUser) {
+            this.showNotification('Bitte melden Sie sich an, um einen Parkplatz zu melden', 'error');
+            return;
+        }
+
+        if (!this.selectedCoordinates) {
+            this.showNotification('Bitte wählen Sie einen Standort aus', 'error');
+            return;
+        }
+
+        const formData = {
+            name: document.getElementById('parking-name').value,
+            description: document.getElementById('parking-description').value,
+            type: document.getElementById('parking-type').value,
+            restrictions: document.getElementById('parking-restrictions').value,
+            latitude: this.selectedCoordinates.lat,
+            longitude: this.selectedCoordinates.lng,
+            photo: null // Foto wird später implementiert
+        };
+
+        // Validierung
+        if (!formData.name || !formData.type) {
+            this.showNotification('Bitte füllen Sie alle Pflichtfelder aus', 'error');
+            return;
+        }
+
+        // Parkplatz an Backend senden
+        fetch(`${this.apiBaseUrl}/reported-parking`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.message) {
+                this.showNotification(data.message, 'success');
+                this.hideModal(document.getElementById('report-parking-modal'));
+                this.loadReportedParkingSpots(); // Karte aktualisieren
+                this.loadUserStats(); // Statistiken aktualisieren
+            } else {
+                this.showNotification('Fehler beim Melden des Parkplatzes', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Fehler beim Melden des Parkplatzes:', error);
+            this.showNotification('Verbindungsfehler', 'error');
+        });
     }
 
     generateSampleData() {
@@ -827,18 +1018,36 @@ class FreeParkApp {
     }
 
     loadUserStats() {
-        // Statistiken aus localStorage laden oder Standardwerte verwenden
-        const stats = JSON.parse(localStorage.getItem('userStats') || '{}');
-        
-        document.getElementById('stats-searches').textContent = stats.searches || 0;
-        document.getElementById('stats-favorites').textContent = stats.favorites || 0;
-        document.getElementById('stats-reports').textContent = stats.reports || 0;
-        document.getElementById('stats-points').textContent = stats.points || 0;
-        document.getElementById('total-points').textContent = stats.points || 0;
-        
-        // Rangliste berechnen (Demo)
-        const rank = this.calculateRank(stats.points || 0);
-        document.getElementById('user-rank').textContent = rank;
+        if (!this.currentUser) return;
+
+        // Statistiken vom Backend laden
+        fetch(`${this.apiBaseUrl}/statistics/user/${this.currentUser.id}`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        })
+        .then(response => response.json())
+        .then(stats => {
+            document.getElementById('stats-searches').textContent = stats.searches || 0;
+            document.getElementById('stats-favorites').textContent = stats.favorites || 0;
+            document.getElementById('stats-reports').textContent = stats.reports || 0;
+            document.getElementById('stats-points').textContent = stats.points || 0;
+            document.getElementById('total-points').textContent = stats.points || 0;
+            
+            // Rangliste berechnen
+            const rank = this.calculateRank(stats.points || 0);
+            document.getElementById('user-rank').textContent = rank;
+        })
+        .catch(error => {
+            console.error('Fehler beim Laden der Statistiken:', error);
+            // Fallback zu Standardwerten
+            document.getElementById('stats-searches').textContent = 0;
+            document.getElementById('stats-favorites').textContent = 0;
+            document.getElementById('stats-reports').textContent = 0;
+            document.getElementById('stats-points').textContent = 0;
+            document.getElementById('total-points').textContent = 0;
+            document.getElementById('user-rank').textContent = 'Unranked';
+        });
     }
 
     calculateRank(points) {
@@ -1070,90 +1279,65 @@ function saveSettings() {
 }
 
 function loadLeaderboard() {
-    // Alle Benutzer mit Punkten sammeln
-    const allUsers = JSON.parse(localStorage.getItem('allUsers') || '[]');
     const currentUser = app.currentUser;
     
-    // Demo-Benutzer hinzufügen falls keine vorhanden
-    if (allUsers.length === 0) {
-        const demoUsers = [
-            { id: 'user1', name: 'Max', points: 150, reports: 15 },
-            { id: 'user2', name: 'Anna', points: 120, reports: 12 },
-            { id: 'user3', name: 'Tom', points: 90, reports: 9 },
-            { id: 'user4', name: 'Lisa', points: 80, reports: 8 },
-            { id: 'user5', name: 'Paul', points: 70, reports: 7 },
-            { id: 'user6', name: 'Sarah', points: 60, reports: 6 },
-            { id: 'user7', name: 'Felix', points: 50, reports: 5 },
-            { id: 'user8', name: 'Emma', points: 40, reports: 4 },
-            { id: 'user9', name: 'Lukas', points: 30, reports: 3 },
-            { id: 'user10', name: 'Julia', points: 20, reports: 2 }
-        ];
-        localStorage.setItem('allUsers', JSON.stringify(demoUsers));
-    }
-    
-    // Aktuelle Benutzer laden
-    const users = JSON.parse(localStorage.getItem('allUsers') || '[]');
-    
-    // Aktuellen Benutzer hinzufügen falls nicht vorhanden
-    if (currentUser && !users.find(u => u.id === currentUser.id)) {
-        const userStats = JSON.parse(localStorage.getItem('userStats') || '{}');
-        users.push({
-            id: currentUser.id,
-            name: currentUser.name.split(' ')[0], // Nur Vorname
-            points: userStats.points || 0,
-            reports: userStats.reports || 0
-        });
-        localStorage.setItem('allUsers', JSON.stringify(users));
-    }
-    
-    // Nach Punkten sortieren (absteigend)
-    users.sort((a, b) => b.points - a.points);
-    
-    // Top 10 anzeigen
-    const top10 = users.slice(0, 10);
-    const leaderboardList = document.getElementById('leaderboard-list');
-    
-    if (top10.length === 0) {
-        leaderboardList.innerHTML = '<p class="loading-leaderboard">Keine Daten verfügbar</p>';
-    } else {
-        leaderboardList.innerHTML = top10.map((user, index) => {
-            const rank = index + 1;
-            const rankClass = rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : 'rank-other';
-            const isCurrentUser = currentUser && user.id === currentUser.id;
+    // Rangliste vom Backend laden
+    fetch(`${app.apiBaseUrl}/statistics/leaderboard`)
+        .then(response => response.json())
+        .then(users => {
+            const leaderboardList = document.getElementById('leaderboard-list');
             
-            return `
-                <div class="leaderboard-item ${isCurrentUser ? 'current-user' : ''}">
-                    <div class="leaderboard-rank">
-                        <div class="rank-number ${rankClass}">${rank}</div>
-                        <div class="user-info">
-                            <div class="user-name">${user.name}</div>
-                            <div class="user-points">${user.reports} Parkplätze gemeldet</div>
+            if (users.length === 0) {
+                leaderboardList.innerHTML = '<p class="loading-leaderboard">Keine Daten verfügbar</p>';
+            } else {
+                leaderboardList.innerHTML = users.map((user, index) => {
+                    const rank = index + 1;
+                    const rankClass = rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : 'rank-other';
+                    const isCurrentUser = currentUser && user.id === currentUser.id;
+                    
+                    return `
+                        <div class="leaderboard-item ${isCurrentUser ? 'current-user' : ''}">
+                            <div class="leaderboard-rank">
+                                <div class="rank-number ${rankClass}">${rank}</div>
+                                <div class="user-info">
+                                    <div class="user-name">${user.name}</div>
+                                    <div class="user-points">${user.reports} Parkplätze gemeldet</div>
+                                </div>
+                            </div>
+                            <div class="user-points">${user.points} Punkte</div>
                         </div>
-                    </div>
-                    <div class="user-points">${user.points} Punkte</div>
-                </div>
-            `;
-        }).join('');
-    }
-    
-    // Benutzer-Position anzeigen
-    const userPositionInfo = document.getElementById('user-position-info');
-    if (currentUser) {
-        const userRank = users.findIndex(u => u.id === currentUser.id) + 1;
-        const userStats = JSON.parse(localStorage.getItem('userStats') || '{}');
-        
-        if (userRank > 0) {
-            userPositionInfo.innerHTML = `
-                <p><strong>Rang:</strong> ${userRank} von ${users.length}</p>
-                <p><strong>Punkte:</strong> ${userStats.points || 0}</p>
-                <p><strong>Gemeldete Parkplätze:</strong> ${userStats.reports || 0}</p>
-            `;
-        } else {
-            userPositionInfo.innerHTML = '<p>Noch keine Punkte gesammelt</p>';
-        }
-    } else {
-        userPositionInfo.innerHTML = '<p>Bitte einloggen um Ihre Position zu sehen</p>';
-    }
+                    `;
+                }).join('');
+            }
+            
+            // Benutzer-Position anzeigen
+            const userPositionInfo = document.getElementById('user-position-info');
+            if (currentUser) {
+                fetch(`${app.apiBaseUrl}/statistics/user/${currentUser.id}/position`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    userPositionInfo.innerHTML = `
+                        <p><strong>Rang:</strong> ${data.position}</p>
+                        <p><strong>Punkte:</strong> ${currentUser.points || 0}</p>
+                        <p><strong>Gemeldete Parkplätze:</strong> ${currentUser.reports || 0}</p>
+                    `;
+                })
+                .catch(error => {
+                    userPositionInfo.innerHTML = '<p>Position konnte nicht geladen werden</p>';
+                });
+            } else {
+                userPositionInfo.innerHTML = '<p>Bitte einloggen um Ihre Position zu sehen</p>';
+            }
+        })
+        .catch(error => {
+            console.error('Fehler beim Laden der Rangliste:', error);
+            const leaderboardList = document.getElementById('leaderboard-list');
+            leaderboardList.innerHTML = '<p class="loading-leaderboard">Fehler beim Laden der Rangliste</p>';
+        });
 }
 
 // Service Worker für PWA-Funktionalität (optional)

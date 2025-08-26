@@ -136,6 +136,91 @@ body {
     backdrop-filter: blur(5px);
 }
 
+/* Parkplatz Melden Modal */
+#report-parking-modal .modal-content {
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.location-controls {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.location-btn {
+    padding: 0.8rem 1.5rem;
+    background: #4ade80;
+    color: #000000;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    flex: 1;
+    min-width: 150px;
+}
+
+.location-btn:hover {
+    background: #22c55e;
+}
+
+.coordinates-display {
+    padding: 1rem;
+    background: #1a1a1a;
+    border: 1px solid #333333;
+    border-radius: 5px;
+    color: #888888;
+    font-family: monospace;
+    text-align: center;
+    margin-top: 0.5rem;
+}
+
+.coordinates-display.active {
+    color: #4ade80;
+    border-color: #4ade80;
+}
+
+textarea {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid #333333;
+    border-radius: 5px;
+    background-color: #0a0a0a;
+    color: #ffffff;
+    font-family: inherit;
+    resize: vertical;
+}
+
+textarea:focus {
+    outline: 2px solid #4ade80;
+    border-color: #4ade80;
+}
+
+input[type="file"] {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid #333333;
+    border-radius: 5px;
+    background-color: #0a0a0a;
+    color: #ffffff;
+    cursor: pointer;
+}
+
+input[type="file"]:focus {
+    outline: 2px solid #4ade80;
+    border-color: #4ade80;
+}
+
+small {
+    color: #888888;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+    display: block;
+}
+
 .modal-content {
     background-color: #1a1a1a;
     margin: 5% auto;
@@ -247,6 +332,31 @@ body {
 }
 
 
+
+/* Home Controls */
+.home-controls {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 2rem;
+}
+
+.report-btn {
+    padding: 1rem 2rem;
+    background: linear-gradient(135deg, #4ade80, #22c55e);
+    color: #000000;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(74, 222, 128, 0.3);
+}
+
+.report-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(74, 222, 128, 0.4);
+}
 
 /* Home Karte */
 .home-map {

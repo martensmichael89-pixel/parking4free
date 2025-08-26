@@ -9,6 +9,8 @@ const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
 const adminRoutes = require('./routes/admin');
 const parkingRoutes = require('./routes/parking');
+const reportedParkingRoutes = require('./routes/reported-parking');
+const statisticsRoutes = require('./routes/statistics');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -66,6 +68,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/parking', parkingRoutes);
+app.use('/api/reported-parking', reportedParkingRoutes);
+app.use('/api/statistics', statisticsRoutes);
 
 // Health Check
 app.get('/api/health', (req, res) => {
@@ -94,7 +98,7 @@ app.listen(PORT, () => {
     // Datenbank initialisieren
     initDatabase().then(() => {
         console.log(`👑 Admin-Account: admin@parking4free.de / admin123`);
-        console.log(`📍 Beispieldaten für Parkplätze eingefügt`);
+        console.log(`📊 Neue Tabellen: reported_parking_spots, user_statistics`);
     }).catch(err => {
         console.error('❌ Fehler beim Initialisieren der Datenbank:', err);
     });
