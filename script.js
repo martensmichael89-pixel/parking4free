@@ -135,8 +135,12 @@ class FreeParkApp {
 
         // Direkte Karten-Klick-Funktion für Parkplatz-Meldung (nur wenn eingeloggt)
         this.homeMap.on('click', (e) => {
+            console.log('Karte geklickt, currentUser:', this.currentUser);
             if (this.currentUser) {
+                console.log('Benutzer eingeloggt, handleDirectMapClick aufrufen');
                 this.handleDirectMapClick(e);
+            } else {
+                console.log('Benutzer nicht eingeloggt, Popup nicht anzeigen');
             }
         });
 
@@ -144,8 +148,11 @@ class FreeParkApp {
     }
 
     handleDirectMapClick(e) {
+        console.log('handleDirectMapClick aufgerufen');
         const lat = e.latlng.lat;
         const lng = e.latlng.lng;
+        
+        console.log('Koordinaten:', lat, lng);
         
         // Popup mit Optionen anzeigen
         const popup = L.popup()
@@ -172,6 +179,7 @@ class FreeParkApp {
             .openOn(this.homeMap);
         
         this.currentPopup = popup;
+        console.log('Popup erstellt und angezeigt');
     }
 
     openReportFormAtLocation(lat, lng) {
@@ -767,6 +775,7 @@ class FreeParkApp {
             }
         })
         .then(data => {
+            console.log('Login erfolgreich, User-Daten:', data);
             this.currentUser = data.user;
             localStorage.setItem('token', data.token);
             this.updateAuthUI();
@@ -886,6 +895,7 @@ class FreeParkApp {
     }
 
     updateAuthUI() {
+        console.log('updateAuthUI aufgerufen, currentUser:', this.currentUser);
         const userActions = document.getElementById('user-actions');
         const userProfile = document.getElementById('user-profile');
         const username = document.getElementById('username');
@@ -894,6 +904,7 @@ class FreeParkApp {
         const mapClickHint = document.getElementById('map-click-hint');
 
         if (this.currentUser) {
+            console.log('Benutzer ist eingeloggt:', this.currentUser.name);
             userActions.style.display = 'none';
             userProfile.style.display = 'flex';
             username.textContent = this.currentUser.name;
@@ -901,11 +912,13 @@ class FreeParkApp {
             // Parkplatz melden Button anzeigen
             if (reportParkingBtn) {
                 reportParkingBtn.style.display = 'inline-block';
+                console.log('Report Parking Button angezeigt');
             }
             
             // Karten-Klick-Hinweis anzeigen
             if (mapClickHint) {
                 mapClickHint.style.display = 'block';
+                console.log('Map Click Hint angezeigt');
             }
             
             // Mitgliederbereich-Navigation anzeigen
@@ -917,6 +930,7 @@ class FreeParkApp {
             // Mitgliederbereich-Daten laden
             this.loadMemberData();
         } else {
+            console.log('Benutzer ist nicht eingeloggt');
             userActions.style.display = 'flex';
             userProfile.style.display = 'none';
             
