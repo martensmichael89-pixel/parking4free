@@ -777,6 +777,8 @@ class FreeParkApp {
     }
 
     setupAuth() {
+        console.log('setupAuth wird aufgerufen...');
+        
         // Login/Register Buttons
         this.loginBtn = document.getElementById('login-btn');
         this.registerBtn = document.getElementById('register-btn');
@@ -785,10 +787,18 @@ class FreeParkApp {
         this.reportParkingBtn = document.getElementById('report-parking-btn');
         this.mapClickHint = document.getElementById('map-click-hint');
 
+        console.log('Login Button gefunden:', this.loginBtn);
+        console.log('Register Button gefunden:', this.registerBtn);
+        console.log('Logout Button gefunden:', this.logoutBtn);
+
         // Modals
         this.loginModal = document.getElementById('login-modal');
         this.registerModal = document.getElementById('register-modal');
         this.reportParkingModal = document.getElementById('report-parking-modal');
+
+        console.log('Login Modal gefunden:', this.loginModal);
+        console.log('Register Modal gefunden:', this.registerModal);
+        console.log('Report Parking Modal gefunden:', this.reportParkingModal);
 
         // Close buttons
         this.closeLogin = document.getElementById('close-login');
@@ -804,58 +814,80 @@ class FreeParkApp {
         this.locationMap = null;
         this.locationMarker = null;
 
-        // Event Listeners
-        this.loginBtn.addEventListener('click', () => this.showModal(this.loginModal));
-        this.loginBtn.addEventListener('touchend', (e) => {
-            e.preventDefault();
-            this.showModal(this.loginModal);
-        });
+        // Event Listeners mit Null-Checks
+        if (this.loginBtn) {
+            this.loginBtn.addEventListener('click', () => this.showModal(this.loginModal));
+            this.loginBtn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                this.showModal(this.loginModal);
+            });
+        }
         
-        this.registerBtn.addEventListener('click', () => this.showModal(this.registerModal));
-        this.registerBtn.addEventListener('touchend', (e) => {
-            e.preventDefault();
-            this.showModal(this.registerModal);
-        });
+        if (this.registerBtn) {
+            this.registerBtn.addEventListener('click', () => this.showModal(this.registerModal));
+            this.registerBtn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                this.showModal(this.registerModal);
+            });
+        }
         
-        this.reportParkingBtn.addEventListener('click', () => this.openReportParkingModal());
-        this.reportParkingBtn.addEventListener('touchend', (e) => {
-            e.preventDefault();
-            this.openReportParkingModal();
-        });
+        if (this.reportParkingBtn) {
+            this.reportParkingBtn.addEventListener('click', () => this.openReportParkingModal());
+            this.reportParkingBtn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                this.openReportParkingModal();
+            });
+        }
         
-        this.logoutBtn.addEventListener('click', () => this.handleLogout());
-        this.logoutBtn.addEventListener('touchend', (e) => {
-            e.preventDefault();
-            this.handleLogout();
-        });
+        if (this.logoutBtn) {
+            this.logoutBtn.addEventListener('click', () => this.handleLogout());
+            this.logoutBtn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                this.handleLogout();
+            });
+        }
         
-        this.memberBtn.addEventListener('click', () => this.showMemberArea());
-        this.memberBtn.addEventListener('touchend', (e) => {
-            e.preventDefault();
-            this.showMemberArea();
-        });
+        if (this.memberBtn) {
+            this.memberBtn.addEventListener('click', () => this.showMemberArea());
+            this.memberBtn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                this.showMemberArea();
+            });
+        }
 
-        this.closeLogin.addEventListener('click', () => this.hideModal(this.loginModal));
-        this.closeLogin.addEventListener('touchend', (e) => {
-            e.preventDefault();
-            this.hideModal(this.loginModal);
-        });
+        if (this.closeLogin) {
+            this.closeLogin.addEventListener('click', () => this.hideModal(this.loginModal));
+            this.closeLogin.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                this.hideModal(this.loginModal);
+            });
+        }
         
-        this.closeRegister.addEventListener('click', () => this.hideModal(this.registerModal));
-        this.closeRegister.addEventListener('touchend', (e) => {
-            e.preventDefault();
-            this.hideModal(this.registerModal);
-        });
+        if (this.closeRegister) {
+            this.closeRegister.addEventListener('click', () => this.hideModal(this.registerModal));
+            this.closeRegister.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                this.hideModal(this.registerModal);
+            });
+        }
         
-        this.closeReportParking.addEventListener('click', () => this.hideModal(this.reportParkingModal));
-        this.closeReportParking.addEventListener('touchend', (e) => {
-            e.preventDefault();
-            this.hideModal(this.reportParkingModal);
-        });
+        if (this.closeReportParking) {
+            this.closeReportParking.addEventListener('click', () => this.hideModal(this.reportParkingModal));
+            this.closeReportParking.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                this.hideModal(this.reportParkingModal);
+            });
+        }
 
-        this.loginForm.addEventListener('submit', (e) => this.handleLogin(e));
-        this.registerForm.addEventListener('submit', (e) => this.handleRegister(e));
-        this.reportParkingForm.addEventListener('submit', (e) => this.handleParkingReport(e));
+        if (this.loginForm) {
+            this.loginForm.addEventListener('submit', (e) => this.handleLogin(e));
+        }
+        if (this.registerForm) {
+            this.registerForm.addEventListener('submit', (e) => this.handleRegister(e));
+        }
+        if (this.reportParkingForm) {
+            this.reportParkingForm.addEventListener('submit', (e) => this.handleParkingReport(e));
+        }
 
         // Neue Event-Listener für das erweiterte Formular
         this.setupReportFormListeners();
@@ -910,18 +942,30 @@ class FreeParkApp {
     }
 
     showModal(modal) {
-        modal.style.display = 'block';
-        // Verhindere Scrollen im Hintergrund
-        document.body.style.overflow = 'hidden';
+        console.log('showModal aufgerufen für:', modal);
+        if (modal) {
+            modal.style.display = 'block';
+            // Verhindere Scrollen im Hintergrund
+            document.body.style.overflow = 'hidden';
+            console.log('Modal angezeigt');
+        } else {
+            console.error('Modal ist null!');
+        }
     }
 
     hideModal(modal) {
-        modal.style.display = 'none';
-        // Erlaube Scrollen wieder
-        document.body.style.overflow = 'auto';
-        // Reset form
-        const form = modal.querySelector('form');
-        if (form) form.reset();
+        console.log('hideModal aufgerufen für:', modal);
+        if (modal) {
+            modal.style.display = 'none';
+            // Erlaube Scrollen wieder
+            document.body.style.overflow = 'auto';
+            // Reset form
+            const form = modal.querySelector('form');
+            if (form) form.reset();
+            console.log('Modal versteckt');
+        } else {
+            console.error('Modal ist null!');
+        }
     }
 
     handleLogin(e) {
