@@ -133,7 +133,67 @@ class FreeParkApp {
             subdomains: 'abc'
         }).addTo(this.homeMap);
 
+        // Direkte Karten-Klick-Funktion für Parkplatz-Meldung (nur wenn eingeloggt)
+        this.homeMap.on('click', (e) => {
+            if (this.currentUser) {
+                this.handleDirectMapClick(e);
+            }
+        });
+
         // Beispieldaten werden später in init() hinzugefügt
+    }
+
+    handleDirectMapClick(e) {
+        const lat = e.latlng.lat;
+        const lng = e.latlng.lng;
+        
+        // Popup mit Optionen anzeigen
+        const popup = L.popup()
+            .setLatLng([lat, lng])
+            .setContent(`
+                <div style="text-align: center; min-width: 250px;">
+                    <h3 style="color: #4ade80; margin: 0 0 15px 0;">🚗 Parkplatz melden?</h3>
+                    <p style="margin: 10px 0; color: #333;">
+                        <strong>Standort:</strong><br>
+                        ${lat.toFixed(6)}, ${lng.toFixed(6)}
+                    </p>
+                    <div style="display: flex; gap: 10px; justify-content: center; margin-top: 15px;">
+                        <button onclick="app.openReportFormAtLocation(${lat}, ${lng})" 
+                                style="background: #4ade80; color: black; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;">
+                            ✅ Ja, melden
+                        </button>
+                        <button onclick="app.closePopup()" 
+                                style="background: #666; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
+                            ❌ Abbrechen
+                        </button>
+                    </div>
+                </div>
+            `)
+            .openOn(this.homeMap);
+        
+        this.currentPopup = popup;
+    }
+
+    openReportFormAtLocation(lat, lng) {
+        // Popup schließen
+        if (this.currentPopup) {
+            this.homeMap.closePopup(this.currentPopup);
+        }
+        
+        // Koordinaten setzen
+        this.setSelectedCoordinates(lat, lng);
+        
+        // Modal öffnen
+        const reportModal = document.getElementById('report-parking-modal');
+        this.showModal(reportModal);
+        
+        this.showNotification('Füllen Sie das Formular aus, um den Parkplatz zu melden', 'info');
+    }
+
+    closePopup() {
+        if (this.currentPopup) {
+            this.homeMap.closePopup(this.currentPopup);
+        }
     }
 
     addHomeMapMarkers() {
@@ -831,6 +891,7 @@ class FreeParkApp {
         const username = document.getElementById('username');
         const memberNav = document.querySelector('[data-section="member"]');
         const reportParkingBtn = document.getElementById('report-parking-btn');
+        const mapClickHint = document.getElementById('map-click-hint');
 
         if (this.currentUser) {
             userActions.style.display = 'none';
@@ -840,6 +901,11 @@ class FreeParkApp {
             // Parkplatz melden Button anzeigen
             if (reportParkingBtn) {
                 reportParkingBtn.style.display = 'inline-block';
+            }
+            
+            // Karten-Klick-Hinweis anzeigen
+            if (mapClickHint) {
+                mapClickHint.style.display = 'block';
             }
             
             // Mitgliederbereich-Navigation anzeigen
@@ -857,6 +923,11 @@ class FreeParkApp {
             // Parkplatz melden Button verstecken
             if (reportParkingBtn) {
                 reportParkingBtn.style.display = 'none';
+            }
+            
+            // Karten-Klick-Hinweis verstecken
+            if (mapClickHint) {
+                mapClickHint.style.display = 'none';
             }
             
             // Mitgliederbereich-Navigation verstecken
@@ -910,22 +981,44 @@ class FreeParkApp {
             
             // Neuen temporären Marker hinzufügen
             this.tempMarker = L.circleMarker([lat, lng], {
-                radius: 10,
+                radius: 12,
                 fillColor: '#ff0000',
                 color: '#ffffff',
                 weight: 3,
                 opacity: 1,
                 fillOpacity: 0.8
             }).addTo(this.homeMap);
+
+            // Popup mit Bestätigung hinzufügen
+            this.tempMarker.bindPopup(`
+                <div style="text-align: center; min-width: 200px;">
+                    <h3 style="color: #ff0000; margin: 0 0 10px 0;">📍 Standort markiert!</h3>
+                    <p style="margin: 5px 0; color: #333;">
+                        <strong>Koordinaten:</strong><br>
+                        ${lat.toFixed(6)}, ${lng.toFixed(6)}
+                    </p>
+                    <button onclick="app.confirmLocation()" 
+                            style="background: #4ade80; color: black; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin-top: 10px; font-weight: bold;">
+                        ✅ Bestätigen
+                    </button>
+                </div>
+            `).openPopup();
             
             this.setSelectedCoordinates(lat, lng);
-            this.showNotification('Standort auf Karte markiert', 'success');
+            this.showNotification('Standort auf Karte markiert - Klicken Sie "Bestätigen"', 'success');
             
             // Event Listener entfernen
             this.homeMap.off('click', onMapClick);
         };
         
         this.homeMap.on('click', onMapClick);
+    }
+
+    confirmLocation() {
+        if (this.tempMarker) {
+            this.tempMarker.closePopup();
+            this.showNotification('Standort bestätigt! Füllen Sie das Formular aus.', 'success');
+        }
     }
 
     setSelectedCoordinates(lat, lng) {
