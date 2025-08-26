@@ -390,13 +390,23 @@ class FreeParkApp {
 
     loadReportedParkingSpots() {
         fetch(`${this.apiBaseUrl}/reported-parking`)
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                return response.json();
+            })
             .then(data => {
                 console.log('Gemeldete Parkplätze geladen:', data);
-                this.displayReportedParkingSpots(data);
+                // Sicherstellen, dass data ein Array ist
+                const parkingSpots = Array.isArray(data) ? data : [];
+                this.displayReportedParkingSpots(parkingSpots);
             })
             .catch(error => {
                 console.error('Fehler beim Laden der gemeldeten Parkplätze:', error);
+                // Fallback: Lokale Daten laden
+                const localSpots = JSON.parse(localStorage.getItem('localParkingSpots') || '[]');
+                this.displayReportedParkingSpots(localSpots);
             });
     }
 
@@ -1080,7 +1090,12 @@ class FreeParkApp {
             },
             body: JSON.stringify(formData)
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
             if (data.message) {
                 this.showNotification(data.message, 'success');
@@ -1093,8 +1108,28 @@ class FreeParkApp {
         })
         .catch(error => {
             console.error('Fehler beim Melden des Parkplatzes:', error);
-            this.showNotification('Verbindungsfehler', 'error');
+            // Fallback: Lokal speichern für Demo-Zwecke
+            this.saveParkingSpotLocally(formData);
+            this.showNotification('Parkplatz lokal gespeichert (Backend nicht erreichbar)', 'warning');
+            this.hideModal(document.getElementById('report-parking-modal'));
         });
+    }
+
+    saveParkingSpotLocally(formData) {
+        // Lokale Speicherung für Demo-Zwecke
+        const localSpots = JSON.parse(localStorage.getItem('localParkingSpots') || '[]');
+        const newSpot = {
+            ...formData,
+            id: Date.now(),
+            reporter_name: this.currentUser.name,
+            created_at: new Date().toISOString(),
+            status: 'pending'
+        };
+        localSpots.push(newSpot);
+        localStorage.setItem('localParkingSpots', JSON.stringify(localSpots));
+        
+        // Karte mit lokalem Spot aktualisieren
+        this.displayReportedParkingSpots(localSpots);
     }
 
     generateSampleData() {
@@ -1133,7 +1168,12 @@ class FreeParkApp {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`
             }
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            return response.json();
+        })
         .then(stats => {
             document.getElementById('stats-searches').textContent = stats.searches || 0;
             document.getElementById('stats-favorites').textContent = stats.favorites || 0;
@@ -1390,14 +1430,22 @@ function loadLeaderboard() {
     
     // Rangliste vom Backend laden
     fetch(`${app.apiBaseUrl}/statistics/leaderboard`)
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            return response.json();
+        })
         .then(users => {
             const leaderboardList = document.getElementById('leaderboard-list');
             
-            if (users.length === 0) {
+            // Sicherstellen, dass users ein Array ist
+            const userArray = Array.isArray(users) ? users : [];
+            
+            if (userArray.length === 0) {
                 leaderboardList.innerHTML = '<p class="loading-leaderboard">Keine Daten verfügbar</p>';
             } else {
-                leaderboardList.innerHTML = users.map((user, index) => {
+                leaderboardList.innerHTML = userArray.map((user, index) => {
                     const rank = index + 1;
                     const rankClass = rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : 'rank-other';
                     const isCurrentUser = currentUser && user.id === currentUser.id;
@@ -1425,7 +1473,12 @@ function loadLeaderboard() {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
                 })
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     userPositionInfo.innerHTML = `
                         <p><strong>Rang:</strong> ${data.position}</p>
@@ -1434,6 +1487,7 @@ function loadLeaderboard() {
                     `;
                 })
                 .catch(error => {
+                    console.error('Fehler beim Laden der Benutzer-Position:', error);
                     userPositionInfo.innerHTML = '<p>Position konnte nicht geladen werden</p>';
                 });
             } else {
