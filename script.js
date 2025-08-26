@@ -455,11 +455,17 @@ class FreeParkApp {
                 const parkingSpots = Array.isArray(data) ? data : [];
                 this.displayReportedParkingSpots(parkingSpots);
             })
-            .catch(error => {
-                console.error('Fehler beim Laden der gemeldeten Parkplätze:', error);
-                // Keine lokale Speicherung - nur Backend
-                this.displayReportedParkingSpots([]);
-            });
+                    .catch(error => {
+            console.error('Fehler beim Laden der gemeldeten Parkplätze:', error);
+            
+            // Detailliertere Fehlerbehandlung
+            if (error.message.includes('HTTP 404')) {
+                console.log('API-Route nicht verfügbar - Backend wird aktualisiert');
+            }
+            
+            // Keine lokale Speicherung - nur Backend
+            this.displayReportedParkingSpots([]);
+        });
     }
 
     displayReportedParkingSpots(parkingSpots) {
@@ -1393,7 +1399,17 @@ class FreeParkApp {
         })
         .catch(error => {
             console.error('Fehler beim Melden des Parkplatzes:', error);
-            this.showNotification('Backend nicht erreichbar - Parkplatz konnte nicht gespeichert werden', 'error');
+            
+            // Detailliertere Fehlerbehandlung
+            if (error.message.includes('HTTP 404')) {
+                this.showNotification('API-Route nicht gefunden - Backend wird aktualisiert', 'warning');
+            } else if (error.message.includes('HTTP 401')) {
+                this.showNotification('Nicht autorisiert - Bitte erneut einloggen', 'error');
+            } else if (error.message.includes('HTTP 500')) {
+                this.showNotification('Server-Fehler - Bitte später versuchen', 'error');
+            } else {
+                this.showNotification('Verbindungsfehler - Bitte Internetverbindung prüfen', 'error');
+            }
         });
     }
 
