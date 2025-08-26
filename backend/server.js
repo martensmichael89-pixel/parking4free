@@ -93,6 +93,22 @@ app.get('/api/health', (req, res) => {
     res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
+// Debug Route - Test für reported-parking
+app.get('/api/debug/routes', (req, res) => {
+    res.json({ 
+        message: 'Routes Debug',
+        routes: [
+            '/api/auth',
+            '/api/users', 
+            '/api/admin',
+            '/api/parking',
+            '/api/reported-parking',
+            '/api/statistics'
+        ],
+        timestamp: new Date().toISOString()
+    });
+});
+
 // Error Handler
 app.use((err, req, res, next) => {
     console.error(err.stack);
