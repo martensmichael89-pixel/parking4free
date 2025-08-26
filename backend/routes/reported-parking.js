@@ -1,6 +1,6 @@
 const express = require('express');
 const { db } = require('../database/database');
-const { authenticateToken } = require('../middleware/auth');
+const { verifyToken } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -24,7 +24,7 @@ router.get('/', (req, res) => {
 });
 
 // POST - Neuen Parkplatz melden
-router.post('/', authenticateToken, (req, res) => {
+router.post('/', verifyToken, (req, res) => {
     const { 
         address, 
         description, 
@@ -94,7 +94,7 @@ router.post('/', authenticateToken, (req, res) => {
 });
 
 // POST - Parkplatz bewerten
-router.post('/:id/rate', authenticateToken, (req, res) => {
+router.post('/:id/rate', verifyToken, (req, res) => {
     const { rating_type, comment } = req.body;
     const parkingId = req.params.id;
     const userId = req.user.id;
@@ -151,7 +151,7 @@ router.post('/:id/rate', authenticateToken, (req, res) => {
 });
 
 // PUT - Parkplatz-Status ändern (nur Admin)
-router.put('/:id/status', authenticateToken, (req, res) => {
+router.put('/:id/status', verifyToken, (req, res) => {
     if (req.user.role !== 'admin') {
         return res.status(403).json({ message: 'Nur Administratoren können den Status ändern' });
     }
@@ -179,7 +179,7 @@ router.put('/:id/status', authenticateToken, (req, res) => {
 });
 
 // DELETE - Parkplatz löschen (nur Admin oder eigener Parkplatz)
-router.delete('/:id', authenticateToken, (req, res) => {
+router.delete('/:id', verifyToken, (req, res) => {
     const parkingId = req.params.id;
     const userId = req.user.id;
 

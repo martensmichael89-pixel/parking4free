@@ -1,11 +1,11 @@
 const express = require('express');
 const { db } = require('../database/database');
-const { authenticateToken } = require('../middleware/auth');
+const { verifyToken } = require('../middleware/auth');
 
 const router = express.Router();
 
 // GET - Benutzer-Statistiken
-router.get('/user/:userId', authenticateToken, (req, res) => {
+router.get('/user/:userId', verifyToken, (req, res) => {
     const userId = req.params.userId;
     
     // Prüfen ob Benutzer seine eigenen Statistiken oder Admin ist
@@ -64,7 +64,7 @@ router.get('/leaderboard', (req, res) => {
 });
 
 // GET - Position eines Benutzers in der Rangliste
-router.get('/user/:userId/position', authenticateToken, (req, res) => {
+router.get('/user/:userId/position', verifyToken, (req, res) => {
     const userId = req.params.userId;
     
     if (req.user.id !== parseInt(userId) && req.user.role !== 'admin') {
@@ -90,7 +90,7 @@ router.get('/user/:userId/position', authenticateToken, (req, res) => {
 });
 
 // PUT - Statistiken aktualisieren
-router.put('/user/:userId', authenticateToken, (req, res) => {
+router.put('/user/:userId', verifyToken, (req, res) => {
     const userId = req.params.userId;
     const { reports, points, searches, favorites } = req.body;
     
@@ -114,7 +114,7 @@ router.put('/user/:userId', authenticateToken, (req, res) => {
 });
 
 // POST - Statistiken erhöhen (z.B. für Suchen)
-router.post('/user/:userId/increment', authenticateToken, (req, res) => {
+router.post('/user/:userId/increment', verifyToken, (req, res) => {
     const userId = req.params.userId;
     const { field, amount = 1 } = req.body;
     

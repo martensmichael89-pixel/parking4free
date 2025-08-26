@@ -777,8 +777,6 @@ class FreeParkApp {
     }
 
     setupAuth() {
-        console.log('setupAuth wird aufgerufen...');
-        
         // Login/Register Buttons
         this.loginBtn = document.getElementById('login-btn');
         this.registerBtn = document.getElementById('register-btn');
@@ -787,18 +785,10 @@ class FreeParkApp {
         this.reportParkingBtn = document.getElementById('report-parking-btn');
         this.mapClickHint = document.getElementById('map-click-hint');
 
-        console.log('Login Button gefunden:', this.loginBtn);
-        console.log('Register Button gefunden:', this.registerBtn);
-        console.log('Logout Button gefunden:', this.logoutBtn);
-
         // Modals
         this.loginModal = document.getElementById('login-modal');
         this.registerModal = document.getElementById('register-modal');
         this.reportParkingModal = document.getElementById('report-parking-modal');
-
-        console.log('Login Modal gefunden:', this.loginModal);
-        console.log('Register Modal gefunden:', this.registerModal);
-        console.log('Report Parking Modal gefunden:', this.reportParkingModal);
 
         // Close buttons
         this.closeLogin = document.getElementById('close-login');
@@ -942,19 +932,14 @@ class FreeParkApp {
     }
 
     showModal(modal) {
-        console.log('showModal aufgerufen für:', modal);
         if (modal) {
             modal.style.display = 'block';
             // Verhindere Scrollen im Hintergrund
             document.body.style.overflow = 'hidden';
-            console.log('Modal angezeigt');
-        } else {
-            console.error('Modal ist null!');
         }
     }
 
     hideModal(modal) {
-        console.log('hideModal aufgerufen für:', modal);
         if (modal) {
             modal.style.display = 'none';
             // Erlaube Scrollen wieder
@@ -962,9 +947,6 @@ class FreeParkApp {
             // Reset form
             const form = modal.querySelector('form');
             if (form) form.reset();
-            console.log('Modal versteckt');
-        } else {
-            console.error('Modal ist null!');
         }
     }
 
