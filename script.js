@@ -725,11 +725,16 @@ class FreeParkApp {
     }
 
     setupAuth() {
+        console.log('setupAuth aufgerufen');
         // Login Modal
         const loginBtn = document.getElementById('login-btn');
         const loginModal = document.getElementById('login-modal');
         const closeLogin = document.getElementById('close-login');
         const loginForm = document.getElementById('login-form');
+        
+        console.log('Login Button:', loginBtn);
+        console.log('Login Modal:', loginModal);
+        console.log('Login Form:', loginForm);
 
         // Register Modal
         const registerBtn = document.getElementById('register-btn');
@@ -741,7 +746,15 @@ class FreeParkApp {
         const logoutBtn = document.getElementById('logout-btn');
 
         // Event Listeners
-        loginBtn.addEventListener('click', () => this.showModal(loginModal));
+        if (loginBtn) {
+            console.log('Login Button Event Listener hinzugefügt');
+            loginBtn.addEventListener('click', () => {
+                console.log('Login Button geklickt');
+                this.showModal(loginModal);
+            });
+        } else {
+            console.log('Login Button nicht gefunden!');
+        }
         registerBtn.addEventListener('click', () => this.showModal(registerModal));
         closeLogin.addEventListener('click', () => this.hideModal(loginModal));
         closeRegister.addEventListener('click', () => this.hideModal(registerModal));
@@ -754,10 +767,16 @@ class FreeParkApp {
         });
 
         // Form submissions
-        loginForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.handleLogin();
-        });
+        if (loginForm) {
+            console.log('Login Form Event Listener hinzugefügt');
+            loginForm.addEventListener('submit', (e) => {
+                console.log('Login Form submitted');
+                e.preventDefault();
+                this.handleLogin();
+            });
+        } else {
+            console.log('Login Form nicht gefunden!');
+        }
 
         registerForm.addEventListener('submit', (e) => {
             e.preventDefault();
