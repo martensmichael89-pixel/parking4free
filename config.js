@@ -6,7 +6,7 @@ const config = {
         mapAttribution: '© OpenStreetMap contributors'
     },
     production: {
-        apiBaseUrl: 'https://parking4free-backend.onrender.com/api', // Hier deine Render-URL eintragen
+        apiBaseUrl: 'https://parking4free-backend.onrender.com/api', // Online Backend
         mapTileUrl: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
         mapAttribution: '© OpenStreetMap contributors'
     }

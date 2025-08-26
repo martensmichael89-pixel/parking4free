@@ -1021,7 +1021,7 @@ class FreeParkApp {
         const password = document.getElementById('login-password').value;
 
         // Versuche zuerst mit fetch (für moderne Browser)
-        fetch('https://parking4free-backend.onrender.com/api/auth/login', {
+        fetch(`${this.apiBaseUrl}/auth/login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -1051,7 +1051,7 @@ class FreeParkApp {
 
     handleLoginXHR(email, password) {
         const xhr = new XMLHttpRequest();
-        xhr.open('POST', 'https://parking4free-backend.onrender.com/api/auth/login', true);
+        xhr.open('POST', `${this.apiBaseUrl}/auth/login`, true);
         xhr.setRequestHeader('Content-Type', 'application/json');
         
         xhr.onload = () => {
@@ -1096,7 +1096,7 @@ class FreeParkApp {
 
         // Verwende XMLHttpRequest statt fetch um CSP-Probleme zu umgehen
         const xhr = new XMLHttpRequest();
-        xhr.open('POST', 'https://parking4free-backend.onrender.com/api/auth/register', true);
+        xhr.open('POST', `${this.apiBaseUrl}/auth/register`, true);
         xhr.setRequestHeader('Content-Type', 'application/json');
         
         xhr.onload = () => {
